@@ -1,6 +1,0 @@
-name: HardcoreMP
-version: '1.0-SNAPSHOT'
-main: icu.cykuta.hardcoremp.HardcoreMP
-api-version: '1.20'
-depend:
-  - Multiverse-Core
