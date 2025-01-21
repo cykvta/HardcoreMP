@@ -2,6 +2,7 @@ package icu.cykuta.hardcoremp;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import icu.cykuta.hardcoremp.events.Motd;
 import icu.cykuta.hardcoremp.events.PlayerDeath;
 import icu.cykuta.hardcoremp.events.PlayerJoin;
 import icu.cykuta.hardcoremp.world.WorldManager;
@@ -30,6 +31,7 @@ public final class HardcoreMP extends JavaPlugin {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new PlayerDeath(), this);
         pm.registerEvents(new PlayerJoin(), this);
+        pm.registerEvents(new Motd(), this);
     }
 
     @Override

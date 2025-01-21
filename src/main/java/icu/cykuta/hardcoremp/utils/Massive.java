@@ -33,4 +33,19 @@ public class Massive {
             player.getInventory().clear();
         }
     }
+
+    public static void kick(String reason) {
+        for (Player player: Bukkit.getOnlinePlayers()) {
+            player.kickPlayer(reason);
+        }
+    }
+
+    public static void regenStats() {
+        for (Player player: Bukkit.getOnlinePlayers()) {
+            player.setHealth(20);
+            player.setFoodLevel(20);
+            player.setSaturation(20);
+            player.setLevel(0);
+        }
+    }
 }

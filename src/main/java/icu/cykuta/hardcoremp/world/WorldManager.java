@@ -5,8 +5,7 @@ import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import icu.cykuta.hardcoremp.Config;
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.utils.Chat;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
+import org.bukkit.*;
 
 public class WorldManager {
     private final MVWorldManager mvWorldManager = HardcoreMP.getMultiverseCore();
@@ -15,7 +14,7 @@ public class WorldManager {
     private static final String lobbyWorldName = "world";
     private String gameWorldName;
     private static final Config cfg = HardcoreMP.getConfigFile();
-    private WorldStatus status = WorldStatus.NOT_READY;
+    private WorldStatus status = WorldStatus.READY;
 
     public WorldManager() {
         this.gameWorldName = cfg.getFileConfiguration().getString("world.game");
@@ -43,6 +42,9 @@ public class WorldManager {
             throw new IllegalArgumentException("Worlds are null.");
         }
 
+        // Set lobby world to peaceful.
+        this.lobbyWorld.setDifficulty(Difficulty.PEACEFUL);
+
         // Check if the game world is null and create it if it is.
         if (gameWorld == null) {
             Chat.broadcast("Game world not found, creating it now.");
@@ -64,6 +66,11 @@ public class WorldManager {
         this.mvWorldManager.addWorld(gameWorldName + "_nether", World.Environment.NETHER, gameWorldName, null, null, null);
         this.mvWorldManager.addWorld(gameWorldName + "_the_end", World.Environment.THE_END, gameWorldName, null, null, null);
 
+        // Set the difficulty of all worlds to hard.
+        this.mvWorldManager.getMVWorld(gameWorldName).setDifficulty(Difficulty.HARD);
+        this.mvWorldManager.getMVWorld(gameWorldName + "_nether").setDifficulty(Difficulty.HARD);
+        this.mvWorldManager.getMVWorld(gameWorldName + "_the_end").setDifficulty(Difficulty.HARD);
+
         return this.mvWorldManager.getMVWorld(gameWorldName);
     }
 
@@ -75,6 +82,10 @@ public class WorldManager {
         this.mvWorldManager.deleteWorld(gameWorldName);
         this.mvWorldManager.deleteWorld(gameWorldName + "_nether");
         this.mvWorldManager.deleteWorld(gameWorldName + "_the_end");
+
+        this.mvWorldManager.removeWorldFromConfig(gameWorldName);
+        this.mvWorldManager.removeWorldFromConfig(gameWorldName + "_nether");
+        this.mvWorldManager.removeWorldFromConfig(gameWorldName + "_the_end");
     }
 
     /**
@@ -108,5 +119,9 @@ public class WorldManager {
 
     public void setStatus(WorldStatus status) {
         this.status = status;
+    }
+
+    public static String getLobbyWorldName() {
+        return lobbyWorldName;
     }
 }
