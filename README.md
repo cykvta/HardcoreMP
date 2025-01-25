@@ -36,7 +36,7 @@ Ensure the following plugins are installed and configured before using the Share
 
 ## GitHub Packages Repository
 
-To use this plugin as a dependency in your own project, add the following repository and dependency to your `pom.xml`:
+To use this plugin as a dependency in your own project, add the following dependency to your `pom.xml`:
 ```xml
 <dependency>
   <groupId>icu.cykuta</groupId>
