@@ -2,9 +2,10 @@ package icu.cykuta.hardcoremp;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import icu.cykuta.hardcoremp.events.Motd;
-import icu.cykuta.hardcoremp.events.PlayerDeath;
-import icu.cykuta.hardcoremp.events.PlayerJoin;
+import icu.cykuta.hardcoremp.listener.Motd;
+import icu.cykuta.hardcoremp.listener.PlayerDeath;
+import icu.cykuta.hardcoremp.listener.PlayerJoin;
+import icu.cykuta.hardcoremp.utils.Config;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;

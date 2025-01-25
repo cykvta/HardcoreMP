@@ -2,14 +2,14 @@ package icu.cykuta.hardcoremp.world;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
-import icu.cykuta.hardcoremp.Config;
+import icu.cykuta.hardcoremp.utils.Config;
 import icu.cykuta.hardcoremp.HardcoreMP;
+import icu.cykuta.hardcoremp.api.event.GameWorldResetEvent;
 import icu.cykuta.hardcoremp.utils.Chat;
 import org.bukkit.*;
 
 public class WorldManager {
     private final MVWorldManager mvWorldManager = HardcoreMP.getMultiverseCore();
-    private World lobbyWorld;
     private MultiverseWorld gameWorld;
     private static final String lobbyWorldName = "world";
     private String gameWorldName;
@@ -34,7 +34,7 @@ public class WorldManager {
      * @exception IllegalArgumentException If something wrong with the world name or world loading.
      **/
     private void LoadWorlds() {
-        this.lobbyWorld = Bukkit.getWorld(lobbyWorldName);
+        World lobbyWorld = Bukkit.getWorld(lobbyWorldName);
         this.gameWorld = mvWorldManager.getMVWorld(gameWorldName);
 
         // Check if worlds are null
@@ -43,7 +43,7 @@ public class WorldManager {
         }
 
         // Set lobby world to peaceful.
-        this.lobbyWorld.setDifficulty(Difficulty.PEACEFUL);
+        lobbyWorld.setDifficulty(Difficulty.PEACEFUL);
 
         // Check if the game world is null and create it if it is.
         if (gameWorld == null) {
@@ -75,8 +75,7 @@ public class WorldManager {
     }
 
     /**
-     * This method is used to delete the game world.
-     * It will delete the world, nether and the end.
+     * This method is used to delete the game world, nether and the end. Also remove them from the config file.
      */
     public void deleteGameWorld() {
         this.mvWorldManager.deleteWorld(gameWorldName);
@@ -89,8 +88,9 @@ public class WorldManager {
     }
 
     /**
-     * This method is used to regenerate the game world.
-     * Is a combination of deleteGameWorld and createGameWorld.
+     * This method is used to regenerate the game world and replace the gameWorld object with the new one,
+     * also call the GameWorldResetEvent. <br><br>
+     * Is a combination of two methods, deleteGameWorld and createGameWorld.
      */
     public void regenGameWorld() {
         this.deleteGameWorld();
@@ -98,19 +98,26 @@ public class WorldManager {
 
         // Save world name to config file.
         this.saveGameWorld();
+
+        // Call GameWorldResetEvent
+        Bukkit.getPluginManager().callEvent(
+                new GameWorldResetEvent(this.gameWorld.getCBWorld()));
     }
 
-    public World getLobbyWorld() {
-        return this.lobbyWorld;
+    /**
+     * This method is used to save the game world name to the config file.
+     */
+    public void saveGameWorld() {
+        cfg.getFileConfiguration().set("world.game", gameWorld.getName());
+        cfg.save();
     }
 
     public MultiverseWorld getGameWorld() {
         return this.gameWorld;
     }
 
-    public void saveGameWorld() {
-        cfg.getFileConfiguration().set("world.game", gameWorld.getName());
-        cfg.save();
+    public static String getLobbyWorldName() {
+        return lobbyWorldName;
     }
 
     public WorldStatus getStatus() {
@@ -119,9 +126,5 @@ public class WorldManager {
 
     public void setStatus(WorldStatus status) {
         this.status = status;
-    }
-
-    public static String getLobbyWorldName() {
-        return lobbyWorldName;
     }
 }

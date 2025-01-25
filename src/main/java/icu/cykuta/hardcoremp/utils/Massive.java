@@ -2,44 +2,53 @@ package icu.cykuta.hardcoremp.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class Massive {
-    public static void message(String message) {
-        Chat.broadcast(message);
-    }
-
+    /**
+     * Send a message to all players.
+     * @param title
+     * @param subtitle
+     */
     public static void title(String title, String subtitle) {
         for (Player player: Bukkit.getOnlinePlayers()) {
             Chat.title(player, title, subtitle);
         }
     }
 
+    /**
+     * Send a message to all players.
+     * @param gameMode
+     */
     public static void setGameMode(GameMode gameMode) {
         for (Player player: Bukkit.getOnlinePlayers()) {
             player.setGameMode(gameMode);
         }
     }
 
-    public static void teleport(Location location) {
-        for (Player player: Bukkit.getOnlinePlayers()) {
-            player.teleport(location);
-        }
-    }
-
+    /**
+     * Clear the inventory of all players.
+     */
     public static void clearInventory() {
         for (Player player: Bukkit.getOnlinePlayers()) {
             player.getInventory().clear();
         }
     }
 
+    /**
+     * Kick all players.
+     * @param reason
+     */
     public static void kick(String reason) {
         for (Player player: Bukkit.getOnlinePlayers()) {
             player.kickPlayer(reason);
         }
     }
 
+    /**
+     * Regenerate the stats of all players. <br>
+     * Health, food level, saturation, level.
+     */
     public static void regenStats() {
         for (Player player: Bukkit.getOnlinePlayers()) {
             player.setHealth(20);

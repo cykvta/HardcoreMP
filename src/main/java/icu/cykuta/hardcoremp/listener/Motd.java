@@ -1,4 +1,4 @@
-package icu.cykuta.hardcoremp.events;
+package icu.cykuta.hardcoremp.listener;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.world.WorldManager;
@@ -18,6 +18,8 @@ public class Motd implements Listener {
             case REGENERATING:
                 event.setMotd("El mundo de juego se está regenerando.");
                 break;
+            default:
+                event.setMotd("El mundo de juego aún no está listo.");
         }
     }
 }

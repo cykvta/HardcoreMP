@@ -1,4 +1,4 @@
-package icu.cykuta.hardcoremp.events;
+package icu.cykuta.hardcoremp.listener;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.utils.Massive;
