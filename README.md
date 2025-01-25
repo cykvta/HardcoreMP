@@ -1,4 +1,5 @@
 # Hardcore Multiplayer (Spigot Plugin)
+- [Download](https://github.com/cykvta/HardcoreMP/releases)
 
 ## Overview
 
