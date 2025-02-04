@@ -55,6 +55,8 @@ public class Massive {
             player.setFoodLevel(20);
             player.setSaturation(20);
             player.setLevel(0);
+            player.getActivePotionEffects().forEach(effect ->
+                    player.removePotionEffect(effect.getType()));
         }
     }
 }
