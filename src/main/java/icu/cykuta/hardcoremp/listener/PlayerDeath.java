@@ -1,6 +1,7 @@
 package icu.cykuta.hardcoremp.listener;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
+import icu.cykuta.hardcoremp.utils.Bypass;
 import icu.cykuta.hardcoremp.utils.Massive;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
@@ -17,6 +18,13 @@ public class PlayerDeath implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         // Get the player who died
         Player eventPlayer = event.getEntity();
+
+        // Check if player is in the bypass list
+        if (Bypass.isPlayerInBypassList(eventPlayer)) {
+            eventPlayer.sendMessage("Has muerto, pero estás en la lista de bypass, así que no te preocupes.");
+            return;
+        }
+
         WorldManager worldManager = HardcoreMP.getWorldManager();
 
         // Send title to all players
