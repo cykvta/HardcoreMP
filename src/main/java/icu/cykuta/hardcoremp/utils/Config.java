@@ -10,8 +10,8 @@ import java.io.IOException;
 
 public class Config {
     private FileConfiguration fileConfiguration;
-    private final java.io.File dataFolder = HardcoreMP.getPlugin().getDataFolder();
-    private java.io.File file;
+    private final File dataFolder = HardcoreMP.getPlugin().getDataFolder();
+    private File file;
 
     public Config() throws IOException, InvalidConfigurationException {
         this.register();
