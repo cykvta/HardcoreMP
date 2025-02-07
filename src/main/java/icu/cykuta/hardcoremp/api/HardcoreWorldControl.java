@@ -5,7 +5,7 @@ import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
 import org.bukkit.World;
 
-public class HardcoreWorld {
+public class HardcoreWorldControl {
     private static final WorldManager worldManager = HardcoreMP.getWorldManager();
 
     /**
