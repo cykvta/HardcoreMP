@@ -21,7 +21,8 @@ Ensure the following plugins are installed and configured before using the Share
 
 - **Shared Hardcore Mode**: Players share a single hardcore experience. If any player dies, the current world is removed, and a new one is generated.
 - **Random World Generation**: Each time the world is recreated, it uses a new random seed.
-- **Lobby Integration**: Players are sent to the default lobby (`world`) when the main hardcore world is deleted.
+- **World Regeneration**: Players are kicked from the server when a player dies, and the world is regenerated automatically.
+- **Lang Support**: The plugin supports multiple languages configurable in the `config.yml` file.
 
 ## Installation
 
@@ -31,7 +32,7 @@ Ensure the following plugins are installed and configured before using the Share
 
 ## Usage
 
-1. Start the server and ensure the lobby world (`world`) is active.
+1. Start the server and ensure the lobby world is active.
 2. Players can join the shared hardcore experience in the new generated world.
 3. If a player dies, the current world will be deleted, and a new world will be generated automatically.
 
@@ -42,14 +43,14 @@ To use this plugin as a dependency in your own project, add the following depend
 <dependency>
   <groupId>icu.cykuta</groupId>
   <artifactId>hardcore-mp</artifactId>
-  <version>2.0-SNAPSHOT</version>
+  <version>{version}</version>
 </dependency>
 ```
 
 ## Known Issues
 
-- The plugin will throw an error if the default lobby world (`world`) is not available. Ensure this world exists and is loaded properly.
-- Occasionally, the plugin sends players to the lobby world unexpectedly. To resolve this issue, players need to reconnect to the server.
+- The plugin will throw an error if the default lobby world is not available. Ensure this world exists and is loaded properly.
+- On a player's first connection, the plugin does not send them to the game world. The player must reconnect to join the correct world.
 
 ## Support
 

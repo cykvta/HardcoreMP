@@ -1,6 +1,7 @@
 package icu.cykuta.hardcoremp.listener;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
+import icu.cykuta.hardcoremp.config.LangManager;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
 import org.bukkit.GameMode;
@@ -17,14 +18,14 @@ public class PlayerJoin implements Listener {
         WorldManager worldManager = HardcoreMP.getWorldManager();
 
         if (worldManager.getStatus() != WorldStatus.READY) {
-            event.getPlayer().kickPlayer("El mundo de juego aún no está listo, por favor espera...");
+            event.getPlayer().kickPlayer(LangManager.getLang("world-not-ready"));
             return;
         }
 
         Player player = event.getPlayer();
         player.setGameMode(GameMode.SURVIVAL);
 
-        if (player.getWorld().getName().equalsIgnoreCase(WorldManager.getLobbyWorldName())) {
+        if (player.getWorld().getName().equalsIgnoreCase(worldManager.getLobbyWorldName())) {
             player.teleport(HardcoreMP.getWorldManager().getGameWorld().getSpawnLocation());
         }
     }

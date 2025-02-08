@@ -1,4 +1,4 @@
-package icu.cykuta.hardcoremp.utils;
+package icu.cykuta.hardcoremp.config;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -8,12 +8,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 
-public class Config {
+public class ConfigLoader {
     private FileConfiguration fileConfiguration;
     private final File dataFolder = HardcoreMP.getPlugin().getDataFolder();
     private File file;
 
-    public Config() throws IOException, InvalidConfigurationException {
+    public ConfigLoader() throws IOException, InvalidConfigurationException {
         this.register();
     }
 
@@ -50,6 +50,17 @@ public class Config {
         try {
             this.fileConfiguration.save(this.file);
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Reload the config file.
+     */
+    public void reload() {
+        try {
+            this.fileConfiguration.load(this.file);
+        } catch (IOException | InvalidConfigurationException e) {
             throw new RuntimeException(e);
         }
     }

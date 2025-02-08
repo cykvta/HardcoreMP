@@ -2,22 +2,22 @@ package icu.cykuta.hardcoremp.world;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
-import icu.cykuta.hardcoremp.utils.Config;
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.api.event.GameWorldResetEvent;
 import icu.cykuta.hardcoremp.utils.Chat;
+import icu.cykuta.hardcoremp.config.SettingManager;
 import org.bukkit.*;
 
 public class WorldManager {
     private final MVWorldManager mvWorldManager = HardcoreMP.getMultiverseCore();
+    private final String lobbyWorldName;
     private MultiverseWorld gameWorld;
-    private static final String lobbyWorldName = "world";
     private String gameWorldName;
-    private static final Config cfg = HardcoreMP.getConfigFile();
     private WorldStatus status = WorldStatus.READY;
 
-    public WorldManager() {
-        this.gameWorldName = cfg.getFileConfiguration().getString("world.game");
+    public WorldManager(String lobbyWorldName) {
+        this.lobbyWorldName = lobbyWorldName;
+        this.gameWorldName = SettingManager.getGameWorldName();
 
         try {
             LoadWorlds();
@@ -108,15 +108,15 @@ public class WorldManager {
      * This method is used to save the game world name to the config file.
      */
     public void saveGameWorld() {
-        cfg.getFileConfiguration().set("world.game", gameWorld.getName());
-        cfg.save();
+        SettingManager.setGameWorldName(this.gameWorldName);
+        SettingManager.saveConfig();
     }
 
     public MultiverseWorld getGameWorld() {
         return this.gameWorld;
     }
 
-    public static String getLobbyWorldName() {
+    public String getLobbyWorldName() {
         return lobbyWorldName;
     }
 

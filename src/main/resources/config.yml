@@ -1,4 +1,26 @@
-world:
-  game: ""
-bypass:
-  - cykuta
+setting:
+  # Name of the current game-world
+  # The plugin will automatically change the world name, if you are not sure what are you doing, please do not modify it
+  game-world: ""
+
+  # Name of the lobby-world
+  lobby-world: "world"
+
+  # Change motd of the server
+  motd: true
+
+  # The list of players who can bypass the death event
+  user-bypass-list:
+    - cykuta
+lang:
+  bypass: "&aYou have bypassed the death event"
+  death-title: "&cDeath"
+  death-subtitle: "&7Player &c{player} &7has died"
+  kick: "&cRestarting the game world, please wait for a new world to be created..."
+  world-not-ready: "&cThe game world is not ready yet, please wait for a while"
+  reload: "&aThe configuration has been reloaded"
+  unknown-command: "&cUnknown command"
+  motd:
+    ready: "&aThe game world is ready"
+    not-ready: "&cThe game world is not ready yet"
+    unknown: "&cThe game world is not ready yet"

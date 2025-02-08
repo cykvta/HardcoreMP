@@ -1,7 +1,8 @@
 package icu.cykuta.hardcoremp.listener;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
-import icu.cykuta.hardcoremp.utils.Bypass;
+import icu.cykuta.hardcoremp.config.LangManager;
+import icu.cykuta.hardcoremp.config.SettingManager;
 import icu.cykuta.hardcoremp.utils.Massive;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
@@ -20,15 +21,18 @@ public class PlayerDeath implements Listener {
         Player eventPlayer = event.getEntity();
 
         // Check if player is in the bypass list
-        if (Bypass.isPlayerInBypassList(eventPlayer)) {
-            eventPlayer.sendMessage("Has muerto, pero estás en la lista de bypass, así que no te preocupes.");
+        if (SettingManager.isPlayerInBypassList(eventPlayer)) {
+            LangManager.sendMessage(eventPlayer, "bypass");
             return;
         }
 
         WorldManager worldManager = HardcoreMP.getWorldManager();
 
         // Send title to all players
-        Massive.title("&cMUERTE", eventPlayer.getName() + " ha muerto.");
+        Massive.title(
+                LangManager.getLang("death-title"),
+                LangManager.getLang("death-subtitle").replace("{player}", eventPlayer.getName())
+        );
 
         // Clear inventory
         Massive.clearInventory();
@@ -49,7 +53,7 @@ public class PlayerDeath implements Listener {
 
         Bukkit.getScheduler().runTaskLater(HardcoreMP.getPlugin(), () -> {
             // Kick players
-            Massive.kick("Reiniciando el mundo de juego, espera a que se cree un nuevo mundo...");
+            Massive.kick(LangManager.getLang("kick"));
 
             // Regenerate the game world
             HardcoreMP.getWorldManager().regenGameWorld();
