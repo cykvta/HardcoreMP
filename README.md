@@ -3,7 +3,7 @@
 
 ## Overview
 
-This plugin adds a shared hardcore experience for Minecraft servers, allowing friends to play together in a high-stakes environment. If one player dies, the entire world is deleted, and a new world is created with a random seed.
+This plugin adds a shared hardcore experience for Minecraft servers. If one player dies, the entire world is deleted, and a new world is created with a random seed.
 
 ### Default Behavior
 
