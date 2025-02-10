@@ -2,8 +2,10 @@ package icu.cykuta.hardcoremp.listener;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.config.LangManager;
+import icu.cykuta.hardcoremp.utils.Chat;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,7 +28,9 @@ public class PlayerJoin implements Listener {
         player.setGameMode(GameMode.SURVIVAL);
 
         if (player.getWorld().getName().equalsIgnoreCase(worldManager.getLobbyWorldName())) {
-            player.teleport(HardcoreMP.getWorldManager().getGameWorld().getSpawnLocation());
+            Bukkit.getScheduler().runTaskLater(HardcoreMP.getPlugin(), () -> {
+                player.teleport(worldManager.getGameWorld().getSpawnLocation());
+            }, 1);
         }
     }
 }

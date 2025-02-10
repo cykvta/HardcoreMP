@@ -38,7 +38,6 @@ To use this plugin as a dependency in your own project, add the following depend
 
 ## Known Issues
 - The plugin will throw an error if the default lobby world is not available. Ensure this world exists and is loaded properly.
-- On a player's first connection, the plugin does not send them to the game world. The player must reconnect to join the correct world.
 
 ## Support
 If you have any issues or feature requests, please contact me.
