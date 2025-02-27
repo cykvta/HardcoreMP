@@ -51,12 +51,17 @@ public class Massive {
      */
     public static void regenStats() {
         for (Player player: Bukkit.getOnlinePlayers()) {
-            player.setHealth(20);
-            player.setFoodLevel(20);
-            player.setSaturation(20);
-            player.setLevel(0);
-            player.getActivePotionEffects().forEach(effect ->
-                    player.removePotionEffect(effect.getType()));
+            regenStats(player);
         }
+    }
+
+    public static void regenStats(Player player) {
+        player.setHealth(20);
+        player.setFoodLevel(20);
+        player.setSaturation(20);
+        player.setLevel(0);
+        player.setExp(0);
+        player.getActivePotionEffects().forEach(effect ->
+                player.removePotionEffect(effect.getType()));
     }
 }

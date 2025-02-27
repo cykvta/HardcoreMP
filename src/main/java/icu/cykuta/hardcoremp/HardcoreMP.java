@@ -3,7 +3,7 @@ package icu.cykuta.hardcoremp;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import icu.cykuta.hardcoremp.command.HcmpCommand;
-import icu.cykuta.hardcoremp.config.SettingManager;
+import icu.cykuta.hardcoremp.config.Setting;
 import icu.cykuta.hardcoremp.listener.Motd;
 import icu.cykuta.hardcoremp.listener.PlayerDeath;
 import icu.cykuta.hardcoremp.listener.PlayerJoin;
@@ -22,16 +22,24 @@ public final class HardcoreMP extends JavaPlugin {
     @Override
     public void onEnable() {
         plugin = this;
+        configLoader = new ConfigLoader();
 
         try {
-            configLoader = new ConfigLoader();
+            configLoader.register();
         } catch (Exception e) {
-            Bukkit.getConsoleSender().sendMessage("Failed to load config file.");
-            Bukkit.getPluginManager().disablePlugin(this);
+            disablePlugin("Failed to load config file.");
             return;
         }
 
-        worldManager = new WorldManager(SettingManager.getLobbyWorldName());
+        worldManager = new WorldManager(Setting.getLobbyWorldName());
+
+        try {
+            worldManager.loadWorlds();
+        } catch (IllegalArgumentException e) {
+            disablePlugin("Failed to load worlds.");
+            return;
+        }
+
         this.registerCommands();
         this.registerEvents();
     }
@@ -66,5 +74,10 @@ public final class HardcoreMP extends JavaPlugin {
 
     public static ConfigLoader getConfigFile() {
         return configLoader;
+    }
+
+    public static void disablePlugin(String reason) {
+        Bukkit.getLogger().severe(reason);
+        Bukkit.getPluginManager().disablePlugin(plugin);
     }
 }

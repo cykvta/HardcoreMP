@@ -5,26 +5,24 @@ import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.api.event.GameWorldResetEvent;
 import icu.cykuta.hardcoremp.utils.Chat;
-import icu.cykuta.hardcoremp.config.SettingManager;
+import icu.cykuta.hardcoremp.config.Setting;
 import org.bukkit.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public class WorldManager {
     private final MVWorldManager mvWorldManager = HardcoreMP.getMultiverseCore();
     private final String lobbyWorldName;
     private MultiverseWorld gameWorld;
     private String gameWorldName;
+    private long gameWorldCreationTime;
     private WorldStatus status = WorldStatus.READY;
 
     public WorldManager(String lobbyWorldName) {
         this.lobbyWorldName = lobbyWorldName;
-        this.gameWorldName = SettingManager.getGameWorldName();
-
-        try {
-            LoadWorlds();
-        } catch (IllegalArgumentException e) {
-            Bukkit.getConsoleSender().sendMessage(e.getMessage());
-            Bukkit.getPluginManager().disablePlugin(HardcoreMP.getPlugin());
-        }
+        this.gameWorldName = Setting.getGameWorldName();
     }
 
     /**
@@ -33,7 +31,7 @@ public class WorldManager {
      *
      * @exception IllegalArgumentException If something wrong with the world name or world loading.
      **/
-    private void LoadWorlds() {
+    public void loadWorlds() throws IllegalArgumentException {
         World lobbyWorld = Bukkit.getWorld(lobbyWorldName);
         this.gameWorld = mvWorldManager.getMVWorld(gameWorldName);
 
@@ -50,6 +48,23 @@ public class WorldManager {
             Chat.broadcast("Game world not found, creating it now.");
             this.gameWorld = this.createGameWorld();
             this.saveGameWorld();
+        }
+
+        // Set the game world creation time.
+        this.setGameWorldCreationTime();
+    }
+
+    /**
+     * This method is used to set the game world creation time.
+     */
+    public void setGameWorldCreationTime() {
+        try {
+            BasicFileAttributes attr = Files.readAttributes(
+                    this.gameWorld.getCBWorld().getWorldFolder().toPath(), BasicFileAttributes.class);
+            this.gameWorldCreationTime = attr.creationTime().toMillis();
+
+        } catch (IOException e) {
+            HardcoreMP.disablePlugin("Error while setting game world creation time.");
         }
     }
 
@@ -102,14 +117,21 @@ public class WorldManager {
         // Call GameWorldResetEvent
         Bukkit.getPluginManager().callEvent(
                 new GameWorldResetEvent(this.gameWorld.getCBWorld()));
+
+        // Set the game world creation time.
+        this.setGameWorldCreationTime();
     }
 
     /**
      * This method is used to save the game world name to the config file.
      */
     public void saveGameWorld() {
-        SettingManager.setGameWorldName(this.gameWorldName);
-        SettingManager.saveConfig();
+        Setting.setGameWorldName(this.gameWorldName);
+        Setting.saveConfig();
+    }
+
+    public long getGameWorldCreationTime() {
+        return this.gameWorldCreationTime;
     }
 
     public MultiverseWorld getGameWorld() {

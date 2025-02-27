@@ -13,10 +13,6 @@ public class ConfigLoader {
     private final File dataFolder = HardcoreMP.getPlugin().getDataFolder();
     private File file;
 
-    public ConfigLoader() throws IOException, InvalidConfigurationException {
-        this.register();
-    }
-
     /**
      * Register the config file.
      *

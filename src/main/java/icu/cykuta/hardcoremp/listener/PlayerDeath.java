@@ -2,7 +2,7 @@ package icu.cykuta.hardcoremp.listener;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.config.LangManager;
-import icu.cykuta.hardcoremp.config.SettingManager;
+import icu.cykuta.hardcoremp.config.Setting;
 import icu.cykuta.hardcoremp.utils.Massive;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
@@ -21,7 +21,7 @@ public class PlayerDeath implements Listener {
         Player eventPlayer = event.getEntity();
 
         // Check if player is in the bypass list
-        if (SettingManager.isPlayerInBypassList(eventPlayer)) {
+        if (Setting.isPlayerInBypassList(eventPlayer)) {
             LangManager.sendMessage(eventPlayer, "bypass");
             return;
         }

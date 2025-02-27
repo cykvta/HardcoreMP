@@ -1,19 +1,81 @@
 package icu.cykuta.hardcoremp.config;
 
-public enum Setting {
-    USER_BYPASS_LIST("user-bypass-list"),
-    GAME_WORLD("game-world"),
-    LOBBY_WORLD("lobby-world"),
-    MOTD("motd");
+import icu.cykuta.hardcoremp.HardcoreMP;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 
-    private final String path;
+public class Setting {
+    private static final FileConfiguration config = HardcoreMP.getConfigFile().getFileConfiguration();
+    private static final String settingPath = "setting.";
 
-    Setting(String path) {
-        this.path = path;
+    /**
+     * Save config
+     */
+    public static void saveConfig() {
+        HardcoreMP.getConfigFile().save();
     }
 
-    @Override
-    public String toString() {
-        return "setting." + this.path;
+    /**
+     * Return if Player name is in bypass list
+     * @param playerName
+     * @return boolean
+     */
+    public static boolean isPlayerInBypassList(String playerName) {
+        return config.getList(settingPath + "user-bypass-list").contains(playerName);
+    }
+
+    /**
+     * Return if Player is in bypass list
+     * @param player
+     * @return boolean
+     */
+    public static boolean isPlayerInBypassList(Player player) {
+        return isPlayerInBypassList(player.getName());
+    }
+
+    /**
+     * Return game world name
+     * @return String
+     */
+    public static String getGameWorldName() {
+        return config.getString(settingPath + "game-world");
+    }
+
+    /**
+     * Set game world name
+     * @param worldName
+     */
+    public static void setGameWorldName(String worldName) {
+        config.set(settingPath + "game-world", worldName);
+    }
+
+    /**
+     * Return lobby world name
+     * @return String
+     */
+    public static String getLobbyWorldName() {
+        return config.getString(settingPath + "lobby-world");
+    }
+
+    /**
+     * Set lobby world name
+     * @param worldName
+     */
+    public static void setLobbyWorldName(String worldName) {
+        config.set(settingPath + "lobby-world", worldName);
+    }
+
+    /**
+     * Is MOTD enabled
+     */
+    public static boolean isMotdEnabled() {
+        return config.getBoolean(settingPath + "motd");
+    }
+
+    /**
+     * Is offline player inventory clear enabled
+     */
+    public static boolean isOfflinePlayerInventoryClearEnabled() {
+        return config.getBoolean(settingPath + "offline-player-inventory-clear");
     }
 }

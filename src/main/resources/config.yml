@@ -12,6 +12,11 @@ setting:
   # The list of players who can bypass the death event
   user-bypass-list:
     - cykuta
+
+  # If this is set to true, prevent players keep their inventory after world reset if they are offline
+  # ALERT: This works with world folder created-time and last player
+  offline-player-inventory-clear: true
+
 lang:
   bypass: "&aYou have bypassed the death event"
   death-title: "&cDeath"

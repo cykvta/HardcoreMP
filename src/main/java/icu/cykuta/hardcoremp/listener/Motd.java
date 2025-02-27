@@ -11,8 +11,7 @@ import org.bukkit.event.server.ServerListPingEvent;
 public class Motd implements Listener {
     @EventHandler
     public void onPing(ServerListPingEvent event) {
-        if (!(HardcoreMP.getConfigFile().getFileConfiguration().
-                getBoolean(Setting.MOTD.toString()))) {
+        if (!(Setting.isMotdEnabled())) {
             return;
         }
 
