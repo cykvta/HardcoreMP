@@ -1,5 +1,5 @@
 # Hardcore Multiplayer (Spigot Plugin)
-- [Download](https://github.com/cykvta/HardcoreMP/releases)
+[![](https://jitpack.io/v/cykvta/HardcoreMP.svg)](https://jitpack.io/#cykvta/HardcoreMP)
 
 ## Overview
 This plugin adds a shared hardcore experience for Minecraft servers. If one player dies, the entire world is deleted, and a new world is created with a random seed.
@@ -26,8 +26,20 @@ Ensure the following plugins are installed and configured before using the Share
 2. Players can join the shared hardcore experience in the new generated world.
 3. If a player dies, the current world will be deleted, and a new world will be generated automatically.
 
-## GitHub Packages Repository
-To use this plugin as a dependency in your own project, add the following dependency to your `pom.xml`:
+## Development
+To use this plugin as a dependency in your own project.
+
+Add the JitPack repository to your build file.
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+Add the dependency.
 ```xml
 <dependency>
   <groupId>icu.cykuta</groupId>
