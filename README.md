@@ -42,9 +42,9 @@ Add the JitPack repository to your build file.
 Add the dependency.
 ```xml
 <dependency>
-  <groupId>icu.cykuta</groupId>
-  <artifactId>hardcore-mp</artifactId>
-  <version>{version}</version>
+    <groupId>com.github.User</groupId>
+    <artifactId>Repo</artifactId>
+    <version>{version}</version>
 </dependency>
 ```
 
