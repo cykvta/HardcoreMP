@@ -9,6 +9,7 @@ import icu.cykuta.hardcoremp.listener.PlayerDeath;
 import icu.cykuta.hardcoremp.listener.PlayerJoin;
 import icu.cykuta.hardcoremp.config.ConfigLoader;
 import icu.cykuta.hardcoremp.world.WorldManager;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,6 +24,7 @@ public final class HardcoreMP extends JavaPlugin {
     public void onEnable() {
         plugin = this;
         configLoader = new ConfigLoader();
+        new Metrics(this, 25093);
 
         try {
             configLoader.register();
