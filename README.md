@@ -41,9 +41,9 @@ Add the JitPack repository to your build file.
 
 Add the dependency.
 ```xml
-<dependency>
-    <groupId>com.github.User</groupId>
-    <artifactId>Repo</artifactId>
+	<dependency>
+    <groupId>com.github.cykvta</groupId>
+    <artifactId>HardcoreMP</artifactId>
     <version>{version}</version>
 </dependency>
 ```
