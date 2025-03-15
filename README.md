@@ -1,5 +1,6 @@
 # Hardcore Multiplayer (Spigot Plugin)
 [![](https://jitpack.io/v/cykvta/HardcoreMP.svg)](https://jitpack.io/#cykvta/HardcoreMP)
+[![](https://img.shields.io/badge/Spigot-HardcoreMP-ED8106?logo=spigotmc)](https://www.spigotmc.org/resources/122461/)
 
 ## Overview
 This plugin adds a shared hardcore experience for Minecraft servers. If one player dies, the entire world is deleted, and a new world is created with a random seed.
