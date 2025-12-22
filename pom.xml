@@ -6,7 +6,7 @@
 
   <groupId>icu.cykuta</groupId>
   <artifactId>hardcore-mp</artifactId>
-  <version>2.3.1-SNAPSHOT</version>
+  <version>2.3.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>HardcoreMP</name>
@@ -75,13 +75,18 @@
           <url>https://oss.sonatype.org/content/groups/public/</url>
       </repository>
       <repository>
-          <id>multiverse-multiverse-releases</id>
-          <name>Multiverse Repository</name>
-          <url>https://repo.onarandombox.com/multiverse-releases</url>
+          <id>onarandombox</id>
+          <url>https://repo.onarandombox.com/content/groups/public/</url>
       </repository>
   </repositories>
 
   <dependencies>
+      <dependency>
+          <groupId>org.mvplugins.multiverse.core</groupId>
+          <artifactId>multiverse-core</artifactId>
+          <version>5.4.0</version>
+          <scope>provided</scope>
+      </dependency>
       <dependency>
           <groupId>org.spigotmc</groupId>
           <artifactId>spigot-api</artifactId>
@@ -89,16 +94,15 @@
           <scope>provided</scope>
       </dependency>
       <dependency>
-          <groupId>com.onarandombox.multiversecore</groupId>
-          <artifactId>Multiverse-Core</artifactId>
-          <version>4.3.1</version>
-          <scope>provided</scope>
-      </dependency>
-      <dependency>
           <groupId>org.bstats</groupId>
           <artifactId>bstats-bukkit</artifactId>
           <version>3.0.2</version>
           <scope>compile</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.jetbrains</groupId>
+          <artifactId>annotations</artifactId>
+          <version>26.0.2-1</version>
       </dependency>
   </dependencies>
 </project>

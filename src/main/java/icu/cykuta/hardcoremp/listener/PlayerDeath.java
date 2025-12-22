@@ -3,7 +3,9 @@ package icu.cykuta.hardcoremp.listener;
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.config.LangManager;
 import icu.cykuta.hardcoremp.config.Setting;
+import icu.cykuta.hardcoremp.utils.Chat;
 import icu.cykuta.hardcoremp.utils.Massive;
+import icu.cykuta.hardcoremp.world.WorldCreationError;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
 import org.bukkit.Bukkit;
@@ -28,11 +30,27 @@ public class PlayerDeath implements Listener {
 
         WorldManager worldManager = HardcoreMP.getWorldManager();
 
+        // check if players has lives left
+        if (worldManager.getLives() > 0) {
+            worldManager.removeLife();
+            Massive.title(
+                    LangManager.getLang("lives-left")
+                            .replace("{lives}", String.valueOf(worldManager.getLives()))
+                            .replace("{max-lives}", String.valueOf(worldManager.getDefaultLives())),
+                    LangManager.getLang("death-subtitle").replace("{player}", eventPlayer.getName())
+            );
+
+            return;
+        }
+
         // Send title to all players
         Massive.title(
                 LangManager.getLang("death-title"),
                 LangManager.getLang("death-subtitle").replace("{player}", eventPlayer.getName())
         );
+
+        // set default lives again
+        worldManager.resetLives();
 
         // Clear inventory
         Massive.clearInventory();
@@ -56,7 +74,12 @@ public class PlayerDeath implements Listener {
             Massive.kick(LangManager.getLang("kick"));
 
             // Regenerate the game world
-            HardcoreMP.getWorldManager().regenGameWorld();
+            try {
+                HardcoreMP.getWorldManager().regenGameWorld();
+            } catch (WorldCreationError e) {
+                HardcoreMP.disablePlugin(e.getMessage());
+                throw new RuntimeException(e);
+            }
 
             // Set the world status to ready
             worldManager.setStatus(WorldStatus.READY);

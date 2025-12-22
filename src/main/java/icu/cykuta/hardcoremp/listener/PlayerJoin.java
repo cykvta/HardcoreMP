@@ -1,10 +1,10 @@
 package icu.cykuta.hardcoremp.listener;
 
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.config.LangManager;
 import icu.cykuta.hardcoremp.config.Setting;
 import icu.cykuta.hardcoremp.utils.Massive;
+import icu.cykuta.hardcoremp.world.GameSession;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
 import org.bukkit.Bukkit;
@@ -29,14 +29,12 @@ public class PlayerJoin implements Listener {
         player = event.getPlayer();
         player.setGameMode(GameMode.SURVIVAL);
 
-        MultiverseWorld gameWorld = worldManager.getGameWorld();
+        GameSession gameSession = worldManager.getGameSession();
 
         // Clear player inventory if they have items from old world
         if (Setting.isOfflinePlayerInventoryClearEnabled()) {
-            long worldCreationTime = worldManager.getGameWorldCreationTime();
             long playerLastJoin = player.getLastPlayed();
-
-            if (playerLastJoin < worldCreationTime) {
+            if (playerLastJoin < gameSession.getCreatedTime()) {
                 Massive.regenStats(player);
             }
         }
@@ -44,7 +42,7 @@ public class PlayerJoin implements Listener {
         // Teleport player to game world if they are in the lobby world
         if (player.getWorld().getName().equalsIgnoreCase(worldManager.getLobbyWorldName())) {
             Bukkit.getScheduler().runTaskLater(HardcoreMP.getPlugin(), () -> {
-                player.teleport(gameWorld.getSpawnLocation());
+                player.teleport(gameSession.getOverworld().getSpawnLocation());
             }, 1);
         }
     }

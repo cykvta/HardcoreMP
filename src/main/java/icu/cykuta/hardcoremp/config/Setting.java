@@ -78,4 +78,39 @@ public class Setting {
     public static boolean isOfflinePlayerInventoryClearEnabled() {
         return config.getBoolean(settingPath + "offline-player-inventory-clear");
     }
+
+    /**
+     * Get default lives count for new world
+     */
+    public static int getMaxLives() {
+        return config.getInt(settingPath + "max-lives");
+    }
+
+    /**
+     * Get default lives count for new world
+     */
+    public static int getLives() {
+        return config.getInt(settingPath + "current-lives");
+    }
+
+    /**
+     * Set current lives count
+     */
+    public static void setLives(int lives) {
+        config.set(settingPath + "current-lives", lives);
+    }
+
+    /**
+     * Set world creation time
+     */
+    public static void setCreateTime(long time) {
+        config.set(settingPath + "create-time", time);
+    }
+
+    /**
+     * Get world creation time
+     */
+    public static long getCreateTime() {
+        return config.getLong(settingPath + "create-time");
+    }
 }

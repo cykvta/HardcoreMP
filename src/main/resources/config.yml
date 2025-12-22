@@ -17,6 +17,13 @@ setting:
   # ALERT: This works with world folder created-time and last player
   offline-player-inventory-clear: true
 
+  # Set the ammount of lives
+  current-lives: 3
+  max-lives: 3
+
+  # World creation time please do not modify.
+  create-time: 0
+
 lang:
   bypass: "&aYou have bypassed the death event"
   death-title: "&cDeath"
@@ -24,6 +31,7 @@ lang:
   kick: "&cRestarting the game world, please wait for a new world to be created..."
   world-not-ready: "&cThe game world is not ready yet, please wait for a while"
   reload: "&aThe configuration has been reloaded"
+  lives-left: "&c{lives}/{max-lives}"
   unknown-command: "&cUnknown command"
   motd:
     ready: "&aThe game world is ready"
