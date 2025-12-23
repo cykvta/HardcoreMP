@@ -7,7 +7,6 @@ import icu.cykuta.hardcoremp.config.Setting;
 import org.bukkit.*;
 import org.mvplugins.multiverse.core.world.MultiverseWorld;
 import org.mvplugins.multiverse.core.world.options.CreateWorldOptions;
-import org.mvplugins.multiverse.core.world.options.DeleteWorldOptions;
 import org.mvplugins.multiverse.core.world.options.RemoveWorldOptions;
 
 public class WorldManager {

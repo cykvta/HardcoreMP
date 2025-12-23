@@ -5,7 +5,6 @@ import icu.cykuta.hardcoremp.world.GameSession;
 import icu.cykuta.hardcoremp.world.WorldCreationError;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
-import org.bukkit.World;
 
 public class HardcoreWorldControl {
     private static final WorldManager worldManager = HardcoreMP.getWorldManager();
