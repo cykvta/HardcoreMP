@@ -1,0 +1,56 @@
+name: Build & Release from Maven Version
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # necesario para crear tags
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Get Maven version
+        id: version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build with Maven
+        run: mvn clean package
+
+      - name: Get JAR file
+        id: jar
+        run: |
+          JAR_PATH=$(ls target/*.jar | grep -v original | head -n 1)
+          echo "jar_path=$JAR_PATH" >> $GITHUB_OUTPUT
+          echo "jar_name=$(basename $JAR_PATH)" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
+        run: |
+          git tag v${{ steps.version.outputs.version }}
+          git push origin v${{ steps.version.outputs.version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          files: ${{ steps.jar.outputs.jar_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
