@@ -3,7 +3,7 @@ package icu.cykuta.hardcoremp.listener;
 import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.config.LangManager;
 import icu.cykuta.hardcoremp.config.Setting;
-import icu.cykuta.hardcoremp.utils.Massive;
+import icu.cykuta.hardcoremp.utils.Stats;
 import icu.cykuta.hardcoremp.world.GameSession;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
@@ -35,7 +35,7 @@ public class PlayerJoin implements Listener {
         if (Setting.isOfflinePlayerInventoryClearEnabled()) {
             long playerLastJoin = player.getLastPlayed();
             if (playerLastJoin < gameSession.getCreatedTime()) {
-                Massive.regenStats(player);
+                Stats.regenStats(player);
             }
         }
 

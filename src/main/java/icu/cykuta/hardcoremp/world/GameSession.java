@@ -1,6 +1,7 @@
 package icu.cykuta.hardcoremp.world;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
+import icu.cykuta.hardcoremp.config.Setting;
 import org.mvplugins.multiverse.core.world.MultiverseWorld;
 
 public class GameSession {
@@ -8,14 +9,22 @@ public class GameSession {
     private MultiverseWorld nether;
     private MultiverseWorld end;
     private long createdTime;
+    private int lives;
 
     public GameSession(String overworld, long createdTime) {
         this.overworld = HardcoreMP.getMultiverseCore().getWorld(overworld).getOrNull();
         this.createdTime = createdTime == 0 ? System.currentTimeMillis() : createdTime;
+        this.setSessionLives();
     }
 
     public GameSession(long createdTime) {
         this.createdTime = createdTime == 0 ? System.currentTimeMillis() : createdTime;
+        this.setSessionLives();
+    }
+
+    private void setSessionLives() {
+        Setting.setLives(Setting.getMaxLives());
+        this.lives = Setting.getMaxLives();
     }
 
     public MultiverseWorld getOverworld() {
@@ -51,5 +60,15 @@ public class GameSession {
     public GameSession setEnd(MultiverseWorld world) {
         this.end = world;
         return this;
+    }
+
+    public void removeLife() {
+        --this.lives;
+        Setting.setLives(this.lives);
+        Setting.saveConfig();
+    }
+
+    public int getLives() {
+        return this.lives;
     }
 }

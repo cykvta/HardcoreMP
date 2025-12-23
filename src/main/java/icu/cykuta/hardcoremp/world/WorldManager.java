@@ -7,6 +7,7 @@ import icu.cykuta.hardcoremp.config.Setting;
 import org.bukkit.*;
 import org.mvplugins.multiverse.core.world.MultiverseWorld;
 import org.mvplugins.multiverse.core.world.options.CreateWorldOptions;
+import org.mvplugins.multiverse.core.world.options.DeleteWorldOptions;
 import org.mvplugins.multiverse.core.world.options.RemoveWorldOptions;
 
 public class WorldManager {
@@ -14,7 +15,6 @@ public class WorldManager {
     private final String lobbyWorldName;
     private GameSession gameSession;
     private WorldStatus status = WorldStatus.READY;
-    private int lives = Setting.getMaxLives();
 
     public WorldManager(String lobbyWorldName) {
         this.lobbyWorldName = lobbyWorldName;
@@ -93,16 +93,21 @@ public class WorldManager {
      * also call the GameWorldResetEvent. <br><br>
      * Is a combination of two methods, deleteGameWorld and createGameWorld.
      */
-    public void regenGameWorld() throws WorldCreationError {
-        this.deleteGameWorld();
-        this.gameSession = this.createGameWorld();
+    public void regenGameWorld() {
+        try {
+            this.deleteGameWorld();
+            this.gameSession = this.createGameWorld();
 
-        // Save world name to config file.
-        this.saveGameWorld();
+            // Save world name to config file.
+            this.saveGameWorld();
 
-        // Call GameWorldResetEvent
-        Bukkit.getPluginManager().callEvent(
-                new GameWorldResetEvent(this.gameSession.getOverworld()));
+            // Call api event = GameWorldResetEvent
+            Bukkit.getPluginManager().callEvent(new GameWorldResetEvent(this.gameSession.getOverworld()));
+
+        } catch (WorldCreationError e) {
+            HardcoreMP.disablePlugin(e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -111,24 +116,6 @@ public class WorldManager {
     public void saveGameWorld() {
         Setting.setGameWorldName(this.gameSession.getOverworld().getName());
         Setting.saveConfig();
-    }
-
-    public void removeLife() {
-        Setting.setLives(--this.lives);
-        Setting.saveConfig();
-    }
-
-    public void resetLives() {
-        this.lives = Setting.getMaxLives();
-        Setting.saveConfig();
-    }
-
-    public int getDefaultLives() {
-        return Setting.getMaxLives();
-    }
-
-    public int getLives() {
-        return this.lives;
     }
 
     public GameSession getGameSession() {

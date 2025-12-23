@@ -4,8 +4,8 @@ import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.config.LangManager;
 import icu.cykuta.hardcoremp.config.Setting;
 import icu.cykuta.hardcoremp.utils.Chat;
-import icu.cykuta.hardcoremp.utils.Massive;
-import icu.cykuta.hardcoremp.world.WorldCreationError;
+import icu.cykuta.hardcoremp.utils.Stats;
+import icu.cykuta.hardcoremp.world.GameSession;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
 import org.bukkit.Bukkit;
@@ -29,14 +29,15 @@ public class PlayerDeath implements Listener {
         }
 
         WorldManager worldManager = HardcoreMP.getWorldManager();
+        GameSession gameSession = HardcoreMP.getWorldManager().getGameSession();
 
         // check if players has lives left
-        if (worldManager.getLives() > 0) {
-            worldManager.removeLife();
-            Massive.title(
+        if (gameSession.getLives() > 0) {
+            gameSession.removeLife();
+            Chat.massTitle(
                     LangManager.getLang("lives-left")
-                            .replace("{lives}", String.valueOf(worldManager.getLives()))
-                            .replace("{max-lives}", String.valueOf(worldManager.getDefaultLives())),
+                            .replace("{lives}", String.valueOf(gameSession.getLives()))
+                            .replace("{max-lives}", String.valueOf(Setting.getMaxLives())),
                     LangManager.getLang("death-subtitle").replace("{player}", eventPlayer.getName())
             );
 
@@ -44,22 +45,10 @@ public class PlayerDeath implements Listener {
         }
 
         // Send title to all players
-        Massive.title(
+        Chat.massTitle(
                 LangManager.getLang("death-title"),
                 LangManager.getLang("death-subtitle").replace("{player}", eventPlayer.getName())
         );
-
-        // set default lives again
-        worldManager.resetLives();
-
-        // Clear inventory
-        Massive.clearInventory();
-
-        // Regen statistics
-        Massive.regenStats();
-
-        // Set all players gamemode to spectator
-        Massive.setGameMode(GameMode.SPECTATOR);
 
         // If world is not ready, return
         if (worldManager.getStatus() == WorldStatus.REGENERATING) {
@@ -69,20 +58,23 @@ public class PlayerDeath implements Listener {
         // Set the world status to regenerating
         worldManager.setStatus(WorldStatus.REGENERATING);
 
+        // For every player
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            player.setGameMode(GameMode.SPECTATOR);
+            Stats.regenStats(player);
+        });
+
+        // Task run after 5 seconds
         Bukkit.getScheduler().runTaskLater(HardcoreMP.getPlugin(), () -> {
-            // Kick players
-            Massive.kick(LangManager.getLang("kick"));
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                player.kickPlayer(LangManager.getLang("kick"));
+            });
 
             // Regenerate the game world
-            try {
-                HardcoreMP.getWorldManager().regenGameWorld();
-            } catch (WorldCreationError e) {
-                HardcoreMP.disablePlugin(e.getMessage());
-                throw new RuntimeException(e);
-            }
+            HardcoreMP.getWorldManager().regenGameWorld();
 
             // Set the world status to ready
             worldManager.setStatus(WorldStatus.READY);
-        }, 5 * 20L);
-    }
+            }, 5 * 20L);
+        }
 }

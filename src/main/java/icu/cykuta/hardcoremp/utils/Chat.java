@@ -23,6 +23,10 @@ public class Chat {
         player.sendTitle(color(title), color(subtitle), 10, 70, 20);
     }
 
+    public static void massTitle(String title, String subtitle) {
+        Bukkit.getOnlinePlayers().forEach(player -> Chat.title(player, title, subtitle));
+    }
+
     /**
      * Broadcast a message to all players.
      * @param message
