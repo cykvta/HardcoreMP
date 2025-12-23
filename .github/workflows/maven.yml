@@ -3,7 +3,7 @@ name: Build & Release from Maven Version
 on:
   push:
     branches:
-      - main
+      - master
 
 permissions:
   contents: write
