@@ -1,10 +1,9 @@
 setting:
-  # Name of the current game-world
-  # The plugin will automatically change the world name, if you are not sure what are you doing, please do not modify it
-  game-world: ""
-
   # Name of the lobby-world
   lobby-world: "world"
+
+  # Delete old worlds folder after reset
+  remove-old-worlds: true
 
   # Change motd of the server
   motd: true
@@ -14,15 +13,17 @@ setting:
     - cykuta
 
   # If this is set to true, prevent players keep their inventory after world reset if they are offline
-  # ALERT: This works with world folder created-time and last player
   offline-player-inventory-clear: true
 
-  # Set the ammount of lives
+  # Set the amount of lives
   current-lives: 3
   max-lives: 3
 
-  # World creation time please do not modify.
+  # World creation time, do not modify.
   create-time: 0
+
+  # Reset ID counter, do not modify.
+  reset-id: 0
 
 lang:
   bypass: "&aYou have bypassed the death event"
@@ -37,3 +38,29 @@ lang:
     ready: "&aThe game world is ready"
     not-ready: "&cThe game world is not ready yet"
     unknown: "&cThe game world is not ready yet"
+  info:
+    only-players: "&cEste comando solo puede ser usado por jugadores."
+    no-session: "&cNo hay sesión de juego activa."
+    separator: "&a=================================================="
+    title: "&6Información del Mundo Actual"
+    world: "&e▸ &fMundo: &7{world}"
+    seed: "&e▸ &fSeed: &7{seed}"
+    difficulty: "&e▸ &fDificultad: &7{difficulty}"
+    location: "&e▸ &fTu ubicación: &7X:{x} Y:{y} Z:{z}"
+    spawn: "&e▸ &fSpawn: &7X:{x} Y:{y} Z:{z}"
+    time: "&e▸ &fHora: &7{time} (tick: {tick})"
+    weather: "&e▸ &fClima: &7{weather}"
+    world-type: "&e▸ &fTipo de Mundo: &7{type}"
+    lives: "&e▸ &fVidas Restantes: &7{lives}"
+    time-day: "Día"
+    time-sunset: "Atardecer"
+    time-night: "Noche"
+    time-dawn: "Madrugada"
+    weather-clear: "Despejado"
+    weather-rain: "Lluvia"
+    weather-thunder: "Tormenta"
+    type-overworld: "Overworld (Principal)"
+    type-nether: "Nether (Infierno)"
+    type-end: "The End (El Final)"
+    type-lobby: "Lobby (Espera)"
+    type-unknown: "Desconocido"

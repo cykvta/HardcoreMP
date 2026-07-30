@@ -1,18 +1,18 @@
 package icu.cykuta.hardcoremp.api.event;
 
+import org.bukkit.World;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
-import org.mvplugins.multiverse.core.world.MultiverseWorld;
 
 /**
  * Throw when the game world is reset successfully.
  */
 public class GameWorldResetEvent extends Event {
-    private final MultiverseWorld gameWorld;
+    private final World gameWorld;
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    public GameWorldResetEvent(MultiverseWorld gameWorld) {
+    public GameWorldResetEvent(World gameWorld) {
         this.gameWorld = gameWorld;
     }
 
@@ -21,7 +21,7 @@ public class GameWorldResetEvent extends Event {
      *
      * @return World
      */
-    public MultiverseWorld getGameWorld() {
+    public World getGameWorld() {
         return gameWorld;
     }
 

@@ -36,17 +36,25 @@ public class Setting {
     /**
      * Return game world name
      * @return String
+     * @deprecated Los mundos ahora tienen nombres fijos, este método ya no es necesario.
      */
+    @Deprecated
     public static String getGameWorldName() {
-        return config.getString(settingPath + "game-world");
+        return config.getString(settingPath + "game-world", "");
     }
 
     /**
-     * Set game world name
-     * @param worldName
+     * Get current reset ID
      */
-    public static void setGameWorldName(String worldName) {
-        config.set(settingPath + "game-world", worldName);
+    public static int getResetId() {
+        return config.getInt(settingPath + "reset-id", 0);
+    }
+
+    /**
+     * Set current reset ID
+     */
+    public static void setResetId(int id) {
+        config.set(settingPath + "reset-id", id);
     }
 
     /**
@@ -112,5 +120,12 @@ public class Setting {
      */
     public static long getCreateTime() {
         return config.getLong(settingPath + "create-time");
+    }
+
+    /**
+     * Get world if you want to remove old worlds
+     */
+    public static boolean removeOldWorlds() {
+        return config.getBoolean(settingPath + "remove-old-worlds");
     }
 }

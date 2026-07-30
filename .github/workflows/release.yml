@@ -1,0 +1,80 @@
+name: Release on version change
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'pom.xml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # necesario para crear tags y generar notas
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Get Maven version
+        id: version
+        run: |
+          VERSION=$(mvn -B -q help:evaluate -Dexpression=project.version -DforceStdout)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version detectada: $VERSION"
+
+      - name: Check if tag already exists
+        id: check
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::El tag $TAG ya existe, no hay cambio de version. Se omite la release."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Nueva version detectada: $TAG"
+          fi
+
+      - name: Build with Maven
+        if: steps.check.outputs.exists == 'false'
+        run: mvn -B clean package
+
+      - name: Locate JAR
+        id: jar
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          JAR_PATH=$(ls target/*.jar | grep -v original | head -n 1)
+          echo "jar_path=$JAR_PATH" >> "$GITHUB_OUTPUT"
+          echo "JAR: $JAR_PATH"
+
+      - name: Create Git tag
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          files: ${{ steps.jar.outputs.jar_path }}
+          generate_release_notes: true
+          prerelease: ${{ contains(steps.version.outputs.version, '-SNAPSHOT') || contains(steps.version.outputs.version, '-RC') }}

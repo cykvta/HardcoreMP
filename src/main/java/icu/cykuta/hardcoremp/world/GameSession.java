@@ -1,24 +1,21 @@
 package icu.cykuta.hardcoremp.world;
 
-import icu.cykuta.hardcoremp.HardcoreMP;
 import icu.cykuta.hardcoremp.config.Setting;
-import org.mvplugins.multiverse.core.world.MultiverseWorld;
+import org.bukkit.World;
 
 public class GameSession {
-    private MultiverseWorld overworld;
-    private MultiverseWorld nether;
-    private MultiverseWorld end;
+    private World overworld;
+    private World nether;
+    private World end;
     private long createdTime;
     private int lives;
 
-    public GameSession(String overworld, long createdTime) {
-        this.overworld = HardcoreMP.getMultiverseCore().getWorld(overworld).getOrNull();
+    public GameSession(long createdTime) {
         this.createdTime = createdTime == 0 ? System.currentTimeMillis() : createdTime;
         this.setSessionLives();
     }
 
-    public GameSession(long createdTime) {
-        this.createdTime = createdTime == 0 ? System.currentTimeMillis() : createdTime;
+    public GameSession() {
         this.setSessionLives();
     }
 
@@ -27,15 +24,15 @@ public class GameSession {
         this.lives = Setting.getMaxLives();
     }
 
-    public MultiverseWorld getOverworld() {
+    public World getOverworld() {
         return overworld;
     }
 
-    public MultiverseWorld getNether() {
+    public World getNether() {
         return nether;
     }
 
-    public MultiverseWorld getEnd() {
+    public World getEnd() {
         return end;
     }
 
@@ -43,21 +40,22 @@ public class GameSession {
         return this.createdTime;
     }
 
-    public void setCreatedTime(long time) {
+    public GameSession setCreatedTime(long time) {
         this.createdTime = time;
+        return this;
     }
 
-    public GameSession setOverworld(MultiverseWorld world) {
+    public GameSession setOverworld(World world) {
         this.overworld = world;
         return this;
     }
 
-    public GameSession setNether(MultiverseWorld world) {
+    public GameSession setNether(World world) {
         this.nether = world;
         return this;
     }
 
-    public GameSession setEnd(MultiverseWorld world) {
+    public GameSession setEnd(World world) {
         this.end = world;
         return this;
     }
