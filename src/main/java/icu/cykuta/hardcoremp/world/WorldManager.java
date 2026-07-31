@@ -42,7 +42,17 @@ public class WorldManager {
         this.currentResetId = GameData.getResetId();
     }
 
-    public void loadWorlds() throws IllegalArgumentException {
+    /**
+     * Load (or generate) the game worlds.
+     * <p>
+     * Failures are thrown, never handled by disabling the plugin from here: this
+     * runs inside onEnable, and disabling closes the plugin classloader while the
+     * caller is still running.
+     *
+     * @throws IllegalArgumentException when the server is not set up for the plugin
+     * @throws IllegalStateException    when the recorded game cannot be loaded back
+     */
+    public void loadWorlds() throws IllegalArgumentException, IllegalStateException {
         World lobbyWorld = Bukkit.getWorld(lobbyWorldName);
         if (lobbyWorld == null) throw new IllegalArgumentException("Lobby world '" + lobbyWorldName + "' does not exist.");
         lobbyWorld.setDifficulty(Difficulty.PEACEFUL);
@@ -87,11 +97,13 @@ public class WorldManager {
                 // the game data is gone. Regenerating here is what used to happen on
                 // every single restart, and it emptied everybody's inventory.
                 this.status = WorldStatus.GENERATION_FAILED;
-                HardcoreMP.disablePlugin("The game world on disk is not the one recorded in data.yml"
-                        + " (expected seed " + expectedSeed + ", found " + overworld.getSeed() + ")."
+                throw new IllegalStateException("the game world on disk is not the one recorded in data.yml"
+                        + " (expected seed " + expectedSeed + ", found " + overworld.getSeed() + " in "
+                        + overworld.getWorldFolder() + ")."
                         + " The plugin will not regenerate it automatically to avoid data loss."
-                        + " Restore the backup, or delete data.yml to start a new game.");
-                return;
+                        + " If that folder is the game everybody is playing, set data.world-seed to "
+                        + overworld.getSeed() + " in data.yml. Otherwise restore the backup from "
+                        + BACKUP_FOLDER + ", or delete data.yml to start a new game.");
             }
 
             this.gameSession = GameSession.restore(GameData.getCreateTime())
@@ -100,14 +112,16 @@ public class WorldManager {
                     .setEnd(end);
             this.status = WorldStatus.READY;
             logger().info("Game world loaded successfully (seed " + expectedSeed
-                    + ", reset " + currentResetId + ").");
+                    + ", reset " + currentResetId + ", folder " + overworld.getWorldFolder() + ").");
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
             // Never regenerate when the worlds exist but fail to load: doing so used to
             // create a brand new world, which wiped the game and emptied the inventory
             // of every player on their next join.
             this.status = WorldStatus.GENERATION_FAILED;
-            HardcoreMP.disablePlugin("Error loading the game worlds: " + e
-                    + ". The plugin will not regenerate them automatically to avoid data loss.");
+            throw new IllegalStateException("error loading the game worlds: " + e
+                    + ". The plugin will not regenerate them automatically to avoid data loss.", e);
         }
     }
 
@@ -241,13 +255,13 @@ public class WorldManager {
         java.io.File archived = new java.io.File(worldFolder.getParentFile(),
                 worldFolder.getName() + "_old_" + System.currentTimeMillis());
 
-        if (!worldFolder.renameTo(archived)) {
+        if (!moveAside(worldFolder, archived)) {
             logger().warning("Could not move " + worldName + " aside, deleting it in place.");
             try {
                 deleteDirectory(worldFolder.toPath());
             } catch (IOException e) {
                 logger().severe("The folder of " + worldName + " could not be removed (" + e.getMessage()
-                        + "). The new world may reuse it.");
+                        + "). The new world will reuse it and the reset will not be a real one.");
             }
             return;
         }
@@ -269,6 +283,40 @@ public class WorldManager {
                 logger().severe("Error deleting " + archived.getName() + ": " + e.getMessage());
             }
         });
+    }
+
+    /**
+     * Rename a just-unloaded world folder out of the way, retrying while the server
+     * lets go of it.
+     * <p>
+     * Windows refuses to rename a folder that still holds an open handle, and a
+     * world that was unloaded this tick usually still has its region files mapped.
+     * The first attempt failing is normal there, so drop the mappings and try again
+     * instead of giving up: a folder left in place is silently reused by the world
+     * that is generated next, which turns the reset into a no-op.
+     */
+    private boolean moveAside(java.io.File worldFolder, java.io.File target) {
+        for (int attempt = 0; attempt < 4; attempt++) {
+            if (attempt > 0) {
+                // Region files are memory mapped, and only a collection unmaps them
+                System.gc();
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+
+            try {
+                Files.move(worldFolder.toPath(), target.toPath());
+                return true;
+            } catch (IOException ignored) {
+                // Still locked, try again
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -316,12 +364,16 @@ public class WorldManager {
     }
 
     private void deleteDirectory(Path path) throws IOException {
-        if (!Files.exists(path)) return;
+        // Same story as moveAside(): a file the server has not released yet fails
+        // once and goes away on the next pass
+        for (int attempt = 0; attempt < 3 && Files.exists(path); attempt++) {
+            if (attempt > 0) System.gc();
 
-        try (Stream<Path> walk = Files.walk(path)) {
-            walk.sorted(Comparator.reverseOrder()).forEach(p -> {
-                try { Files.delete(p); } catch (IOException ignored) {}
-            });
+            try (Stream<Path> walk = Files.walk(path)) {
+                walk.sorted(Comparator.reverseOrder()).forEach(p -> {
+                    try { Files.delete(p); } catch (IOException ignored) {}
+                });
+            }
         }
 
         // Files.delete() failures are swallowed above, so confirm the result

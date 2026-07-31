@@ -6,7 +6,7 @@
 
   <groupId>icu.cykuta</groupId>
   <artifactId>hardcore-mp</artifactId>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
   <packaging>jar</packaging>
 
   <name>HardcoreMP</name>

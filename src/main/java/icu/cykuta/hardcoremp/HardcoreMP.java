@@ -58,7 +58,9 @@ public final class HardcoreMP extends JavaPlugin {
 
         try {
             worldManager.loadWorlds();
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
+            // Must return: once the plugin is disabled its classloader is closed,
+            // and loading any further class of ours throws a "zip file closed" error.
             disablePlugin("Failed to load worlds: " + e.getMessage());
             return;
         }
@@ -125,8 +127,14 @@ public final class HardcoreMP extends JavaPlugin {
         else Bukkit.getLogger().info(message);
     }
 
+    /**
+     * Disable the plugin with a reason.
+     * <p>
+     * Never call this from {@link #onEnable()} and keep going: disabling closes the
+     * plugin classloader, so the very next class we touch fails to load.
+     */
     public static void disablePlugin(String reason) {
         Bukkit.getLogger().severe(reason);
-        Bukkit.getPluginManager().disablePlugin(plugin);
+        if (plugin != null) Bukkit.getPluginManager().disablePlugin(plugin);
     }
 }

@@ -71,12 +71,25 @@ public class AsyncWorldGenerator {
                 case "end":       gameSession.setEnd(world);       break;
             }
 
-            HardcoreMP.getPlugin().getLogger().info("World " + name + " generated at " + world.getWorldFolder());
+            HardcoreMP.getPlugin().getLogger().info("World " + name + " generated at " + world.getWorldFolder()
+                    + " (seed " + world.getSeed() + ")");
+
+            if (world.getSeed() != seed) {
+                // Bukkit ignores the requested seed when the folder is still on disk: it
+                // loads what is already there. The reset did not happen, so say it out
+                // loud instead of letting the server look like it started a new game.
+                HardcoreMP.getPlugin().getLogger().severe("World " + name + " kept the data already present in "
+                        + world.getWorldFolder() + " (asked for seed " + seed + ", got " + world.getSeed()
+                        + "). The old world folder could not be removed, so this is not a fresh world.");
+            }
 
             if (successCount.incrementAndGet() == 3) {
                 GameData.setCreateTime(gameSession.getCreatedTime());
-                // The seed is what lets the next startup recognise this same world
-                GameData.setWorldSeed(seed);
+                // The seed is what lets the next startup recognise this same world, so
+                // record what the world really is, not what was asked for. Storing the
+                // requested seed made the next startup refuse to load a world it had
+                // just created itself.
+                GameData.setWorldSeed(gameSession.getOverworld().getSeed());
                 GameData.save();
                 completionFuture.complete(gameSession);
             }
