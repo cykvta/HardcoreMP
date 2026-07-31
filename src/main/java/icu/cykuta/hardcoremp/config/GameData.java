@@ -44,6 +44,29 @@ public class GameData {
     }
 
     /**
+     * Seed of the current game world, and the proof that it is still the same one.
+     * <p>
+     * It is the only reliable way to tell a restored world from a freshly created
+     * one: where the world files live on disk is up to the server (Paper keeps the
+     * worlds a plugin creates inside the main world folder, not next to it), while
+     * the seed travels with the world data whatever the layout is.
+     *
+     * @return the stored seed, or 0 when no game has been generated yet
+     */
+    public static long getWorldSeed() {
+        return data().getLong(DATA_PATH + "world-seed", 0L);
+    }
+
+    public static void setWorldSeed(long seed) {
+        data().set(DATA_PATH + "world-seed", seed);
+    }
+
+    /** Whether a game world has already been generated. */
+    public static boolean hasWorldSeed() {
+        return data().contains(DATA_PATH + "world-seed");
+    }
+
+    /**
      * Number of world resets performed so far. Used to detect players that were
      * offline while the world was reset.
      */

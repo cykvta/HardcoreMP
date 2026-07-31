@@ -116,6 +116,15 @@ public final class HardcoreMP extends JavaPlugin {
         return dataFile;
     }
 
+    /**
+     * Log a line through the plugin logger, falling back to the server one when
+     * the plugin is not enabled yet.
+     */
+    public static void log(String message) {
+        if (plugin != null) plugin.getLogger().info(message);
+        else Bukkit.getLogger().info(message);
+    }
+
     public static void disablePlugin(String reason) {
         Bukkit.getLogger().severe(reason);
         Bukkit.getPluginManager().disablePlugin(plugin);

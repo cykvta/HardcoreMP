@@ -51,28 +51,11 @@ public class WorldManager {
         limboWorld = loadOrCreateLimbo();
         if (limboWorld == null) throw new IllegalArgumentException("The limbo world could not be created.");
 
-        // A world only counts as existing when its folder holds a level.dat
-        boolean overworldExists = worldExistsOnDisk(AsyncWorldGenerator.OVERWORLD_NAME);
-        boolean netherExists    = worldExistsOnDisk(AsyncWorldGenerator.NETHER_NAME);
-        boolean endExists       = worldExistsOnDisk(AsyncWorldGenerator.END_NAME);
-
-        if (!overworldExists && !netherExists && !endExists) {
-            // First run, or the worlds were deleted outside the plugin: nothing to keep.
-            logger().info("Game worlds not found, creating them now.");
+        boolean firstRun = !GameData.hasWorldSeed() && GameData.getCreateTime() == 0L;
+        if (firstRun) {
+            // No game has ever been generated here.
+            logger().info("No game world recorded yet, creating it now.");
             beginNewWorldGeneration();
-            return;
-        }
-
-        if (!(overworldExists && netherExists && endExists)) {
-            // Inconsistent state. Generating here would destroy the running game,
-            // so stop and let the admin decide.
-            this.status = WorldStatus.GENERATION_FAILED;
-            HardcoreMP.disablePlugin("Some game world folders are missing ("
-                    + (overworldExists ? "" : AsyncWorldGenerator.OVERWORLD_NAME + " ")
-                    + (netherExists ? "" : AsyncWorldGenerator.NETHER_NAME + " ")
-                    + (endExists ? "" : AsyncWorldGenerator.END_NAME)
-                    + "). The plugin will not regenerate the world automatically to avoid data loss. "
-                    + "Restore the backup or delete the remaining folders to start a new game.");
             return;
         }
 
@@ -89,12 +72,35 @@ public class WorldManager {
                 throw new IllegalStateException("Bukkit returned null while loading the game worlds");
             }
 
+            if (!GameData.hasWorldSeed()) {
+                // Upgrade from a version that did not record the seed. The world that
+                // just loaded is the running game, so adopt it instead of throwing it
+                // away, which would cost the players one last inventory.
+                GameData.setWorldSeed(overworld.getSeed());
+                GameData.save();
+                logger().info("Adopted the running game world (seed " + overworld.getSeed() + ").");
+            }
+
+            long expectedSeed = GameData.getWorldSeed();
+            if (overworld.getSeed() != expectedSeed) {
+                // Bukkit handed back a world that is not the one that was recorded, so
+                // the game data is gone. Regenerating here is what used to happen on
+                // every single restart, and it emptied everybody's inventory.
+                this.status = WorldStatus.GENERATION_FAILED;
+                HardcoreMP.disablePlugin("The game world on disk is not the one recorded in data.yml"
+                        + " (expected seed " + expectedSeed + ", found " + overworld.getSeed() + ")."
+                        + " The plugin will not regenerate it automatically to avoid data loss."
+                        + " Restore the backup, or delete data.yml to start a new game.");
+                return;
+            }
+
             this.gameSession = GameSession.restore(GameData.getCreateTime())
                     .setOverworld(overworld)
                     .setNether(nether)
                     .setEnd(end);
             this.status = WorldStatus.READY;
-            logger().info("Game world loaded successfully.");
+            logger().info("Game world loaded successfully (seed " + expectedSeed
+                    + ", reset " + currentResetId + ").");
         } catch (Exception e) {
             // Never regenerate when the worlds exist but fail to load: doing so used to
             // create a brand new world, which wiped the game and emptied the inventory
@@ -103,12 +109,6 @@ public class WorldManager {
             HardcoreMP.disablePlugin("Error loading the game worlds: " + e
                     + ". The plugin will not regenerate them automatically to avoid data loss.");
         }
-    }
-
-    /** Whether the world exists on disk and is not an empty or corrupted folder. */
-    private boolean worldExistsOnDisk(String worldName) {
-        java.io.File folder = new java.io.File(Bukkit.getWorldContainer(), worldName);
-        return folder.isDirectory() && new java.io.File(folder, "level.dat").isFile();
     }
 
     /**
@@ -235,6 +235,7 @@ public class WorldManager {
      */
     private void archiveWorldFolder(String worldName, java.io.File worldFolder) {
         if (worldFolder == null || !worldFolder.exists()) return;
+        if (!isSafeToArchive(worldName, worldFolder)) return;
 
         boolean keepBackup = !Setting.removeOldWorlds();
         java.io.File archived = new java.io.File(worldFolder.getParentFile(),
@@ -270,6 +271,50 @@ public class WorldManager {
         });
     }
 
+    /**
+     * Refuse to touch anything that is not the folder of the world being reset.
+     * <p>
+     * The folder comes from {@link World#getWorldFolder()}, and where a server puts
+     * the worlds a plugin creates is up to the server: Paper nests them inside the
+     * main world. A wrong answer here would archive the world container or the main
+     * world, taking the player files (and every inventory) with it.
+     */
+    private boolean isSafeToArchive(String worldName, java.io.File worldFolder) {
+        java.io.File container = Bukkit.getWorldContainer();
+        World lobby = Bukkit.getWorld(lobbyWorldName);
+        java.io.File lobbyFolder = lobby == null ? null : lobby.getWorldFolder();
+
+        // The folder of a world always carries its own name, whatever the layout
+        if (!worldFolder.getName().equals(worldName)) {
+            logger().severe("Refusing to delete " + worldFolder + " for world " + worldName
+                    + ": the folder does not belong to it.");
+            return false;
+        }
+
+        for (java.io.File protectedFolder : new java.io.File[]{container, lobbyFolder}) {
+            if (protectedFolder == null) continue;
+            if (isSameOrInside(protectedFolder, worldFolder)) {
+                logger().severe("Refusing to delete " + worldFolder + " for world " + worldName
+                        + ": it holds " + protectedFolder + ".");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Whether {@code inner} is {@code outer} itself or sits below it. */
+    private static boolean isSameOrInside(java.io.File inner, java.io.File outer) {
+        try {
+            Path innerPath = inner.getCanonicalFile().toPath();
+            Path outerPath = outer.getCanonicalFile().toPath();
+            return innerPath.startsWith(outerPath);
+        } catch (IOException e) {
+            // Cannot prove it is safe, so treat it as unsafe
+            return true;
+        }
+    }
+
     private void deleteDirectory(Path path) throws IOException {
         if (!Files.exists(path)) return;
 
@@ -296,17 +341,18 @@ public class WorldManager {
         // are not in the limbo. Otherwise they would lose their inventory after a restart.
         Bukkit.getOnlinePlayers().forEach(this::markPlayerReset);
 
-        // Send the players waiting in the limbo to the new world
-        if (limboWorld != null) {
-            Location spawn = SpawnUtils.getSafeSpawn(gameSession.getOverworld());
-            Bukkit.getOnlinePlayers().stream()
-                    .filter(p -> p.getWorld().equals(limboWorld))
-                    .forEach(p -> {
-                        // Survival only after the teleport: the limbo is a void world
-                        p.teleport(spawn);
-                        p.setGameMode(GameMode.SURVIVAL);
-                    });
-        }
+        // Send everybody into the new world.
+        //
+        // Only the players standing in the limbo used to be moved. Anyone whose trip
+        // there had not worked out - a player who respawned in the lobby while the
+        // reset was running, for instance - was left in spectator mode outside the
+        // game with nothing to bring him back.
+        Location spawn = SpawnUtils.getSafeSpawn(gameSession.getOverworld());
+        Bukkit.getOnlinePlayers().forEach(p -> {
+            // Survival only after the teleport: the limbo is a void world
+            p.teleport(spawn);
+            p.setGameMode(GameMode.SURVIVAL);
+        });
 
         // Run the individual callbacks (players that joined while generating)
         for (Runnable callback : worldReadyCallbacks) {
@@ -347,13 +393,16 @@ public class WorldManager {
         return playerResetId != null && playerResetId < currentResetId;
     }
 
-    /** Persist the state that has to survive a server restart. */
+    /**
+     * Persist the state that has to survive a server restart.
+     * <p>
+     * Every online player is marked, whatever the status: a player that is here
+     * when the server goes down has seen the current reset. The server writes the
+     * player files right after the plugins are disabled, so the marks reach the
+     * disk with them.
+     */
     public void saveState() {
-        // Only while a game is running: if the server stops in the middle of a reset,
-        // the players do have to be treated as having missed it.
-        if (status == WorldStatus.READY) {
-            Bukkit.getOnlinePlayers().forEach(this::markPlayerReset);
-        }
+        Bukkit.getOnlinePlayers().forEach(this::markPlayerReset);
         GameData.setResetId(currentResetId);
         if (gameSession != null) GameData.setLives(gameSession.getLives());
         GameData.save();

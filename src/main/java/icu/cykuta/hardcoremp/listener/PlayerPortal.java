@@ -85,22 +85,37 @@ public class PlayerPortal implements Listener {
         }
     }
 
-    // When a player dies in the End, respawn them in our overworld (not the vanilla one)
+    // Keep every respawn inside the session, never in the vanilla worlds
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         WorldManager wm = HardcoreMP.getWorldManager();
         if (wm.getStatus() != WorldStatus.READY) return;
 
         GameSession session = wm.getGameSession();
-        if (session == null) return;
+        if (session == null || session.getOverworld() == null) return;
 
         Location respawn = event.getRespawnLocation();
-        if (respawn.getWorld() == null) return;
+        World respawnWorld = respawn.getWorld();
+        if (respawnWorld == null) return;
 
-        // Redirect when Bukkit wants to respawn the player in our End
-        if (respawn.getWorld().equals(session.getEnd())) {
+        // A player without a bed respawns at the spawn of the main world, which is
+        // the lobby. Nothing brought him back afterwards, so any death left him
+        // stranded there for the rest of the game.
+        if (!isGameWorld(session, respawnWorld)) {
+            event.setRespawnLocation(SpawnUtils.getSafeSpawn(session.getOverworld()));
+            return;
+        }
+
+        // There is no respawning inside our End either
+        if (respawnWorld.equals(session.getEnd())) {
             event.setRespawnLocation(SpawnUtils.getSafeSpawn(session.getOverworld()));
         }
+    }
+
+    private boolean isGameWorld(GameSession session, World world) {
+        return world.equals(session.getOverworld())
+                || world.equals(session.getNether())
+                || world.equals(session.getEnd());
     }
 }
 

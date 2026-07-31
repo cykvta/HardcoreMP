@@ -8,9 +8,10 @@ setting:
   # Change motd of the server
   motd: true
 
-  # The list of players who can bypass the death event
-  user-bypass-list:
-    - cykuta
+  # The list of players whose deaths do not cost a life.
+  # Keep it empty unless you really want someone to be immune: a name left here
+  # silently stops that player from ever losing a life or resetting the world.
+  user-bypass-list: []
 
   # If this is set to true, players who were offline while the world was reset
   # lose their inventory when they join again

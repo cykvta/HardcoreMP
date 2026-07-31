@@ -59,7 +59,14 @@ public class PlayerDeath implements Listener {
         // WorldManager takes care of the stats reset, spectator mode, limbo,
         // world generation and the final teleport.
         Bukkit.getScheduler().runTaskLater(HardcoreMP.getPlugin(), () -> {
-            eventPlayer.spigot().respawn();
+            try {
+                if (eventPlayer.isOnline() && eventPlayer.isDead()) eventPlayer.spigot().respawn();
+            } catch (Throwable t) {
+                // Auto-respawn is a convenience; the reset is not. A server where this
+                // call is gone used to swallow the reset along with it.
+                HardcoreMP.getPlugin().getLogger().warning(
+                        "Could not auto-respawn " + eventPlayer.getName() + ": " + t);
+            }
             worldManager.regenGameWorld();
         }, 1L);
     }

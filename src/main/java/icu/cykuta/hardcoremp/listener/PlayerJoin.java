@@ -26,6 +26,10 @@ public class PlayerJoin implements Listener {
         if (worldManager.playerMissedReset(player)) {
             // Only wipe them when the admin asked for it in the config
             if (Setting.isOfflinePlayerInventoryClearEnabled()) {
+                // Losing an inventory has to leave a trace: without it an admin has no
+                // way to tell this apart from items that were never saved.
+                HardcoreMP.log("Clearing " + player.getName() + ": he was offline during world reset "
+                        + worldManager.getCurrentResetId() + " (offline-player-inventory-clear is on).");
                 Stats.regenStats(player);
             }
 

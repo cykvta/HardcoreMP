@@ -36,6 +36,42 @@ class GameDataTest extends ConfigTestBase {
     }
 
     @Test
+    @DisplayName("the world seed survives a round trip, negative values included")
+    void storesTheWorldSeed() throws Exception {
+        writeConfig("setting:\n  max-lives: 3\n");
+        YamlFile data = writeData("");
+
+        // Seeds are random longs, so half of them are negative
+        GameData.setWorldSeed(-7998512723973787100L);
+        GameData.save();
+
+        data.reload();
+        assertTrue(GameData.hasWorldSeed());
+        assertEquals(-7998512723973787100L, GameData.getWorldSeed());
+    }
+
+    @Test
+    @DisplayName("a data file without a seed reports that no world was recorded")
+    void noSeedRecorded() throws Exception {
+        writeConfig("setting:\n  max-lives: 3\n");
+        writeData("data:\n  reset-id: 3\n");
+
+        // This is what tells a first run from a restart. Getting it wrong regenerated
+        // the world on every startup and emptied every inventory.
+        assertFalse(GameData.hasWorldSeed());
+        assertEquals(0L, GameData.getWorldSeed());
+    }
+
+    @Test
+    @DisplayName("seed zero is a recorded seed, not a missing one")
+    void seedZeroIsRecorded() throws Exception {
+        writeConfig("setting:\n  max-lives: 3\n");
+        writeData("data:\n  world-seed: 0\n");
+
+        assertTrue(GameData.hasWorldSeed());
+    }
+
+    @Test
     @DisplayName("zero lives is honoured and not confused with a missing key")
     void zeroLivesIsKept() throws Exception {
         writeConfig("setting:\n  max-lives: 3\n");

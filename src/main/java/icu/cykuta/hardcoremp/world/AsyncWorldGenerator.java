@@ -71,8 +71,12 @@ public class AsyncWorldGenerator {
                 case "end":       gameSession.setEnd(world);       break;
             }
 
+            HardcoreMP.getPlugin().getLogger().info("World " + name + " generated at " + world.getWorldFolder());
+
             if (successCount.incrementAndGet() == 3) {
                 GameData.setCreateTime(gameSession.getCreatedTime());
+                // The seed is what lets the next startup recognise this same world
+                GameData.setWorldSeed(seed);
                 GameData.save();
                 completionFuture.complete(gameSession);
             }
