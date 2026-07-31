@@ -1,8 +1,8 @@
 package icu.cykuta.hardcoremp.listener;
 
 import icu.cykuta.hardcoremp.HardcoreMP;
+import icu.cykuta.hardcoremp.config.LangManager;
 import icu.cykuta.hardcoremp.config.Setting;
-import icu.cykuta.hardcoremp.utils.Chat;
 import icu.cykuta.hardcoremp.utils.SpawnUtils;
 import icu.cykuta.hardcoremp.utils.Stats;
 import icu.cykuta.hardcoremp.world.GameSession;
@@ -22,19 +22,20 @@ public class PlayerJoin implements Listener {
         WorldManager worldManager = HardcoreMP.getWorldManager();
         Player player = event.getPlayer();
 
-        // Patrón Fahare: detectar si el jugador estuvo offline durante un reset
+        // Fahare pattern: detect players that were offline during a reset
         if (worldManager.playerMissedReset(player)) {
-            Stats.regenStats(player);
+            // Only wipe them when the admin asked for it in the config
+            if (Setting.isOfflinePlayerInventoryClearEnabled()) {
+                Stats.regenStats(player);
+            }
 
             if (worldManager.getStatus() == WorldStatus.READY) {
-                // Mundo listo → teletransportar directo
+                // World ready, teleport straight away
                 worldManager.markPlayerReset(player);
                 handlePlayerReady(worldManager, player);
             } else {
-                // Mundo generándose → esperar en limbo
-                player.setGameMode(GameMode.SPECTATOR);
-                player.teleport(worldManager.getLimboSpawn());
-                player.sendMessage(Chat.color("&eEl mundo se está generando... Por favor espera."));
+                // World being generated, wait in the limbo
+                sendToLimbo(worldManager, player);
                 worldManager.registerWorldReadyCallback(() -> {
                     if (player.isOnline()) {
                         worldManager.markPlayerReset(player);
@@ -45,44 +46,52 @@ public class PlayerJoin implements Listener {
             return;
         }
 
-        // Jugador normal (no se perdió ningún reset)
+        // Regular player (did not miss any reset)
         if (worldManager.getStatus() == WorldStatus.READY) {
+            worldManager.markPlayerReset(player);
             handlePlayerReady(worldManager, player);
         } else {
-            // Mundo generándose → esperar en limbo en espectador
-            player.setGameMode(GameMode.SPECTATOR);
-            player.teleport(worldManager.getLimboSpawn());
-            player.sendMessage(Chat.color("&eEl mundo se está generando... Por favor espera."));
+            // World being generated, wait in the limbo as a spectator
+            sendToLimbo(worldManager, player);
             worldManager.registerWorldReadyCallback(() -> {
-                if (player.isOnline()) handlePlayerReady(worldManager, player);
+                if (player.isOnline()) {
+                    worldManager.markPlayerReset(player);
+                    handlePlayerReady(worldManager, player);
+                }
             });
         }
     }
 
+    private void sendToLimbo(WorldManager worldManager, Player player) {
+        player.setGameMode(GameMode.SPECTATOR);
+        player.teleport(worldManager.getLimboSpawn());
+        LangManager.sendMessage(player, "world-generating");
+    }
+
     /**
-     * Maneja la teletransportación del jugador al mundo de juego
+     * Moves the player into the game world.
      */
     private void handlePlayerReady(WorldManager worldManager, Player player) {
         GameSession gameSession = worldManager.getGameSession();
 
-        // Limpiar inventario si el jugador tiene items de un mundo anterior
-        if (Setting.isOfflinePlayerInventoryClearEnabled()) {
-            if (player.getLastPlayed() < gameSession.getCreatedTime()) {
-                Stats.regenStats(player);
-            }
-        }
+        // NOTE: the inventory is no longer cleared by comparing getLastPlayed() with the
+        // creation time of the world. That check emptied the inventory of every player
+        // whenever the world was loaded with a fresh creation time (for instance after a
+        // server restart), even though nobody had died. The reset id is the only source
+        // of truth, and it is handled in onPlayerJoin.
 
-        // Teletransportar al mundo de juego si está en el lobby o el limbo
+        // Teleport to the game world when the player is in the lobby or the limbo
         String worldName = player.getWorld().getName();
         boolean isInLobbyOrLimbo = worldName.equalsIgnoreCase(worldManager.getLobbyWorldName())
                 || player.getWorld().equals(worldManager.getLimboWorld());
 
         if (isInLobbyOrLimbo) {
-            player.setGameMode(GameMode.SURVIVAL);
             Bukkit.getScheduler().runTaskLater(HardcoreMP.getPlugin(), () -> {
-                if (player.isOnline()) {
-                    player.teleport(SpawnUtils.getSafeSpawn(gameSession.getOverworld()));
-                }
+                if (!player.isOnline()) return;
+                // Survival only after the teleport: the limbo is a void world and the
+                // player would start falling during the tick in between.
+                player.teleport(SpawnUtils.getSafeSpawn(gameSession.getOverworld()));
+                player.setGameMode(GameMode.SURVIVAL);
             }, 1);
         }
     }

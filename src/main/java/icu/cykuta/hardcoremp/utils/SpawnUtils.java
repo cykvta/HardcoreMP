@@ -11,12 +11,12 @@ public class SpawnUtils {
     private static final int MAX_Y_SEARCH = 10;
 
     /**
-     * Devuelve una ubicación segura cerca del spawn del mundo.
-     * El jugador quedará centrado en el bloque (no en la esquina de 4 bloques),
-     * con los pies sobre un bloque sólido y la cabeza en aire.
+     * Returns a safe location close to the spawn of the world.
+     * The player ends up centered on the block (not on the corner of four blocks),
+     * standing on a solid block with air at head height.
      *
-     * @param world El mundo donde buscar
-     * @return Location segura, o el spawn original si no se encuentra nada mejor
+     * @param world the world to search in
+     * @return a safe location, or the original spawn if nothing better is found
      */
     public static Location getSafeSpawn(World world) {
         Location spawn = world.getSpawnLocation();
@@ -24,21 +24,21 @@ public class SpawnUtils {
     }
 
     /**
-     * Busca una ubicación segura partiendo de una location base.
+     * Looks for a safe location starting from a base one.
      */
     public static Location findSafeLocation(Location origin) {
         World world = origin.getWorld();
         if (world == null) return origin;
 
-        // Primero intentar ajustar verticalmente el spawn original
+        // First try to adjust the original spawn vertically
         Location adjusted = adjustVertically(origin);
         if (adjusted != null) return center(adjusted);
 
-        // Si no, buscar en espiral alrededor del spawn
+        // Otherwise search in a square spiral around the spawn
         for (int r = 1; r <= SEARCH_RADIUS; r++) {
             for (int x = -r; x <= r; x++) {
                 for (int z = -r; z <= r; z++) {
-                    // Solo el borde del cuadrado (espiral cuadrada)
+                    // Only the edge of the square
                     if (Math.abs(x) != r && Math.abs(z) != r) continue;
 
                     Location candidate = origin.clone().add(x, 0, z);
@@ -48,15 +48,15 @@ public class SpawnUtils {
             }
         }
 
-        // Fallback: devolver spawn centrado aunque no sea ideal
+        // Fallback: return the centered spawn even if it is not ideal
         return center(origin);
     }
 
     /**
-     * Busca verticalmente desde la columna dada una posición donde:
-     * - El bloque de los pies sea sólido
-     * - Los dos bloques de encima (pies y cabeza) sean transpasables
-     * - No sea lava ni fuego
+     * Scans the given column for a position where:
+     * - the block below is solid
+     * - the feet and head blocks are passable
+     * - it is neither lava nor fire
      */
     private static Location adjustVertically(Location base) {
         World world = base.getWorld();
@@ -67,16 +67,16 @@ public class SpawnUtils {
         int minY = world.getMinHeight();
         int maxY = world.getMaxHeight() - 2;
 
-        // Buscar desde la Y actual hacia arriba y abajo
+        // Search from the current Y upwards and then downwards
         int startY = Math.max(minY + 1, Math.min(base.getBlockY(), maxY));
 
-        // Buscar hacia arriba primero
+        // Upwards first
         for (int y = startY; y <= maxY; y++) {
             Location candidate = new Location(world, x, y, z);
             if (isSafe(candidate)) return candidate;
         }
 
-        // Luego hacia abajo
+        // Then downwards
         for (int y = startY - 1; y > minY; y--) {
             Location candidate = new Location(world, x, y, z);
             if (isSafe(candidate)) return candidate;
@@ -86,10 +86,10 @@ public class SpawnUtils {
     }
 
     /**
-     * Verifica si una ubicación es segura:
-     * - Bloque de abajo: sólido, no lava, no fuego
-     * - Bloque de los pies: transitable (no sólido)
-     * - Bloque de la cabeza: transitable (no sólido)
+     * Checks whether a location is safe:
+     * - block below: solid, no lava, no fire
+     * - feet block: passable (not solid)
+     * - head block: passable (not solid)
      */
     private static boolean isSafe(Location loc) {
         World world = loc.getWorld();
@@ -99,11 +99,11 @@ public class SpawnUtils {
         Block head  = world.getBlockAt(loc.clone().add(0, 1, 0));
         Block floor = world.getBlockAt(loc.clone().add(0, -1, 0));
 
-        // El suelo debe ser sólido y seguro
+        // The floor has to be solid and safe
         if (!floor.getType().isSolid()) return false;
         if (isDangerous(floor.getType())) return false;
 
-        // Los pies y la cabeza deben ser pasables (no sólidos)
+        // Feet and head have to be passable (not solid)
         if (isSolid(feet.getType())) return false;
         if (isSolid(head.getType())) return false;
 
@@ -111,7 +111,7 @@ public class SpawnUtils {
     }
 
     /**
-     * Materiales que no se pueden pisar aunque sean "sólidos"
+     * Materials that cannot be stood on even though they are "solid"
      */
     private static boolean isDangerous(Material mat) {
         switch (mat) {
@@ -130,7 +130,7 @@ public class SpawnUtils {
     }
 
     /**
-     * Materiales que el jugador puede ocupar sin sofocarse
+     * Materials the player can occupy without suffocating
      */
     private static boolean isSolid(Material mat) {
         if (mat == Material.AIR || mat == Material.CAVE_AIR || mat == Material.VOID_AIR) return false;
@@ -139,8 +139,8 @@ public class SpawnUtils {
     }
 
     /**
-     * Centra la ubicación en el medio del bloque (0.5, 0.5)
-     * y ajusta el yaw a 0 para que mire al frente.
+     * Centers the location in the middle of the block (0.5, 0.5)
+     * and sets the yaw to 0 so the player looks straight ahead.
      */
     private static Location center(Location loc) {
         return new Location(

@@ -25,7 +25,7 @@ public class HcmpCommand implements CommandExecutor {
             return true;
         }
 
-        switch (args[0]) {
+        switch (args[0].toLowerCase(java.util.Locale.ROOT)) {
             case "help":
                 this.sendHelp();
                 break;
@@ -44,6 +44,7 @@ public class HcmpCommand implements CommandExecutor {
 
     private void reload() {
         HardcoreMP.getConfigFile().reload();
+        HardcoreMP.getLangFile().reload();
         LangManager.sendMessage(sender, "reload");
     }
 
@@ -70,20 +71,20 @@ public class HcmpCommand implements CommandExecutor {
         Location playerLoc = player.getLocation();
         Location spawnLoc = currentWorld.getSpawnLocation();
 
-        // Hora del día
+        // Time of the day
         String timeOfDay;
         if (time < 6000)        timeOfDay = LangManager.getLang("info.time-day");
         else if (time < 12000)  timeOfDay = LangManager.getLang("info.time-sunset");
         else if (time < 18000)  timeOfDay = LangManager.getLang("info.time-night");
         else                    timeOfDay = LangManager.getLang("info.time-dawn");
 
-        // Clima
+        // Weather
         String weather;
         if (isThundering)       weather = LangManager.getLang("info.weather-thunder");
         else if (hasStorm)      weather = LangManager.getLang("info.weather-rain");
         else                    weather = LangManager.getLang("info.weather-clear");
 
-        // Tipo de mundo
+        // World type
         String worldType;
         if (currentWorld.equals(gameSession.getOverworld()))                                    worldType = LangManager.getLang("info.type-overworld");
         else if (currentWorld.equals(gameSession.getNether()))                                  worldType = LangManager.getLang("info.type-nether");
@@ -115,11 +116,11 @@ public class HcmpCommand implements CommandExecutor {
     }
 
     private void sendHelp() {
-        sender.sendMessage(Chat.color("&a=================================================="));
-        sender.sendMessage(Chat.color("&6HardcoreMP &7- &fA hardcore plugin."));
-        sender.sendMessage(Chat.color("&6/hcmp help &7- &fMostrar este mensaje."));
-        sender.sendMessage(Chat.color("&6/hcmp reload &7- &fRecargar el plugin."));
-        sender.sendMessage(Chat.color("&6/hcmp info &7- &fMostrar información del mundo."));
-        sender.sendMessage(Chat.color("&a=================================================="));
+        LangManager.sendMessage(sender, "help.separator");
+        LangManager.sendMessage(sender, "help.title");
+        LangManager.sendMessage(sender, "help.help");
+        LangManager.sendMessage(sender, "help.reload");
+        LangManager.sendMessage(sender, "help.info");
+        LangManager.sendMessage(sender, "help.separator");
     }
 }

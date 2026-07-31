@@ -1,8 +1,5 @@
 package icu.cykuta.hardcoremp.utils;
 
-import icu.cykuta.hardcoremp.HardcoreMP;
-import org.bukkit.World;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,38 +7,50 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 
 public class File {
-    public static void createWorldsZip(World[] worlds) throws IOException {
-        java.io.File pluginFolder = HardcoreMP.getPlugin().getDataFolder();
-        java.io.File oldWorldsFolder = new java.io.File(pluginFolder, "old_worlds");
-        if (!oldWorldsFolder.exists()) {
-            oldWorldsFolder.mkdirs();
+
+    /**
+     * Zip a world folder into the backup folder.
+     * <p>
+     * The name of the world is part of the zip name: the three dimensions of a
+     * reset are archived within the same second, and a timestamp alone made them
+     * overwrite each other.
+     *
+     * @param backupFolder where the zip is written
+     * @param worldName    name used for the zip file
+     * @param worldFolder  folder to compress
+     * @return the created zip file
+     */
+    public static java.io.File createWorldZip(java.io.File backupFolder, String worldName, java.io.File worldFolder)
+            throws IOException {
+        if (worldFolder == null || !worldFolder.isDirectory()) {
+            throw new IOException("World folder does not exist: " + worldFolder);
+        }
+        if (!backupFolder.exists() && !backupFolder.mkdirs()) {
+            throw new IOException("Could not create the backup folder: " + backupFolder);
         }
 
-        String timestamp = formatMillis(System.currentTimeMillis());
         java.io.File zipFile = new java.io.File(
-                oldWorldsFolder, timestamp + ".zip"
+                backupFolder, worldName + "-" + formatMillis(System.currentTimeMillis()) + ".zip"
         );
 
         try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipFile.toPath()))) {
-            for (World world : worlds) {
-                if (world == null) continue;
-
-                java.io.File worldFolder = world.getWorldFolder();
-                if (worldFolder == null || !worldFolder.exists()) continue;
-
-                zipFolder(zos, worldFolder, worldFolder.getName() + "/");
-            }
+            zipFolder(zos, worldFolder, worldName + "/");
         }
+
+        return zipFile;
     }
 
     private static void zipFolder(ZipOutputStream zos, java.io.File folder, String parentPath) throws IOException {
-        for (java.io.File file : Objects.requireNonNull(folder.listFiles())) {
+        java.io.File[] children = folder.listFiles();
+        // listFiles() returns null when the folder cannot be read
+        if (children == null) return;
+
+        for (java.io.File file : children) {
             String zipEntryName = parentPath + file.getName();
 
             if (file.isDirectory()) {
@@ -62,7 +71,7 @@ public class File {
         }
     }
 
-    private static String formatMillis(long millis) {
+    static String formatMillis(long millis) {
         DateTimeFormatter formatter =
                 DateTimeFormatter.ofPattern("MM-dd-yyyy-HH-mm-ss");
 
@@ -72,5 +81,3 @@ public class File {
         ).format(formatter);
     }
 }
-
-

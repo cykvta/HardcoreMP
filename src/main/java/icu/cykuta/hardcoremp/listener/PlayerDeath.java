@@ -8,6 +8,7 @@ import icu.cykuta.hardcoremp.world.GameSession;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,17 +20,26 @@ public class PlayerDeath implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player eventPlayer = event.getEntity();
 
+        WorldManager worldManager = HardcoreMP.getWorldManager();
+        GameSession gameSession = worldManager.getGameSession();
+
+        // No session yet (the world is still being generated) or a reset is already running
+        if (gameSession == null) return;
+        if (worldManager.getStatus() != WorldStatus.READY) return;
+
+        // Only deaths inside the game worlds count. The lobby is a waiting area kept
+        // on peaceful difficulty, so dying there must not cost a life.
+        if (!isGameWorld(gameSession, eventPlayer.getWorld())) return;
+
         if (Setting.isPlayerInBypassList(eventPlayer)) {
             LangManager.sendMessage(eventPlayer, "bypass");
             return;
         }
 
-        WorldManager worldManager = HardcoreMP.getWorldManager();
-        GameSession gameSession = worldManager.getGameSession();
+        gameSession.removeLife();
 
-        // Hay vidas restantes — quitar una vida y avisar
+        // Lives left: announce how many remain
         if (gameSession.getLives() > 0) {
-            gameSession.removeLife();
             Chat.massTitle(
                     LangManager.getLang("lives-left")
                             .replace("{lives}", String.valueOf(gameSession.getLives()))
@@ -39,19 +49,24 @@ public class PlayerDeath implements Listener {
             return;
         }
 
-        // Sin vidas — avisar y resetear
-        if (worldManager.getStatus() == WorldStatus.REGENERATING) return;
-
+        // No lives left: announce it and reset the world
         Chat.massTitle(
                 LangManager.getLang("death-title"),
                 LangManager.getLang("death-subtitle").replace("{player}", eventPlayer.getName())
         );
 
-        // Auto-respawn después de 1 tick para salir de la pantalla de muerte
-        // WorldManager se encarga de: stats reset, modo espectador, limbo, crear nuevo mundo y teletransportar
+        // Auto-respawn one tick later so the player leaves the death screen.
+        // WorldManager takes care of the stats reset, spectator mode, limbo,
+        // world generation and the final teleport.
         Bukkit.getScheduler().runTaskLater(HardcoreMP.getPlugin(), () -> {
             eventPlayer.spigot().respawn();
             worldManager.regenGameWorld();
         }, 1L);
+    }
+
+    private boolean isGameWorld(GameSession session, World world) {
+        return world.equals(session.getOverworld())
+                || world.equals(session.getNether())
+                || world.equals(session.getEnd());
     }
 }

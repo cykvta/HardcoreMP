@@ -7,14 +7,21 @@ import icu.cykuta.hardcoremp.world.WorldManager;
 import icu.cykuta.hardcoremp.world.WorldStatus;
 
 public class HardcoreWorldControl {
-    private static final WorldManager worldManager = HardcoreMP.getWorldManager();
+
+    /**
+     * Resolved on every call: a static field would capture the manager while the
+     * plugin is still enabling and keep a null forever.
+     */
+    private static WorldManager worldManager() {
+        return HardcoreMP.getWorldManager();
+    }
 
     /**
      * This method is used to regenerate the game world and replace the gameWorld object with the new one,
      * also call the GameWorldResetEvent.
      */
     public static void regenGameWorld() throws WorldCreationError {
-        worldManager.regenGameWorld();
+        worldManager().regenGameWorld();
     }
 
     /**
@@ -22,13 +29,21 @@ public class HardcoreWorldControl {
      * @return World
      */
     public static GameSession getGameSession() {
-        return worldManager.getGameSession();
+        return worldManager().getGameSession();
     }
 
     /**
-     * This method gets the name of the status of the lobby world.
+     * Status of the game world.
      */
+    public static WorldStatus getStatus() {
+        return worldManager().getStatus();
+    }
+
+    /**
+     * @deprecated misleading name, use {@link #getStatus()}.
+     */
+    @Deprecated
     public static WorldStatus getLobbyWorldName() {
-        return worldManager.getStatus();
+        return getStatus();
     }
 }

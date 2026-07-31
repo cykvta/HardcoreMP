@@ -70,7 +70,7 @@ public class PlayerPortal implements Listener {
 
         World.Environment destEnv = to.getWorld().getEnvironment();
 
-        // Deducir tipo de portal por el environment del mundo destino
+        // Work out the portal type from the environment of the destination world
         if (from.equals(session.getOverworld()) && destEnv == World.Environment.NETHER) {
             event.setTo(new Location(session.getNether(), to.getX(), to.getY(), to.getZ()));
 
@@ -85,7 +85,7 @@ public class PlayerPortal implements Listener {
         }
     }
 
-    // Si el jugador muere en el End, respawnear en nuestro Overworld (no en el world vanilla)
+    // When a player dies in the End, respawn them in our overworld (not the vanilla one)
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         WorldManager wm = HardcoreMP.getWorldManager();
@@ -97,7 +97,7 @@ public class PlayerPortal implements Listener {
         Location respawn = event.getRespawnLocation();
         if (respawn.getWorld() == null) return;
 
-        // Si Bukkit quiere respawnear en el overworld vanilla o en el End nuestro → redirigir
+        // Redirect when Bukkit wants to respawn the player in our End
         if (respawn.getWorld().equals(session.getEnd())) {
             event.setRespawnLocation(SpawnUtils.getSafeSpawn(session.getOverworld()));
         }

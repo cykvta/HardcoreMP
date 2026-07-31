@@ -1,32 +1,54 @@
 package icu.cykuta.hardcoremp.config;
 
-import icu.cykuta.hardcoremp.HardcoreMP;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
+import java.util.List;
+
+/**
+ * Read-only access to the options an admin can change in config.yml.
+ * Runtime state belongs to {@link GameData}.
+ */
 public class Setting {
-    private static final FileConfiguration config = HardcoreMP.getConfigFile().getFileConfiguration();
-    private static final String settingPath = "setting.";
+    private static final String SETTING_PATH = "setting.";
+    private static final int DEFAULT_MAX_LIVES = 3;
+    private static final String DEFAULT_LOBBY_WORLD = "world";
+
+    private static YamlFile file;
+
+    /**
+     * Bind the settings to a file. Called on enable, and by the tests.
+     */
+    public static void bind(YamlFile yamlFile) {
+        file = yamlFile;
+    }
+
+    private static FileConfiguration config() {
+        return file.getFileConfiguration();
+    }
 
     /**
      * Save config
      */
     public static void saveConfig() {
-        HardcoreMP.getConfigFile().save();
+        file.save();
     }
 
     /**
      * Return if Player name is in bypass list
-     * @param playerName
+     *
+     * @param playerName the name to look up
      * @return boolean
      */
     public static boolean isPlayerInBypassList(String playerName) {
-        return config.getList(settingPath + "user-bypass-list").contains(playerName);
+        List<?> bypassList = config().getList(SETTING_PATH + "user-bypass-list");
+        return bypassList != null && bypassList.contains(playerName);
     }
 
     /**
      * Return if Player is in bypass list
-     * @param player
+     *
+     * @param player the player to look up
      * @return boolean
      */
     public static boolean isPlayerInBypassList(Player player) {
@@ -34,98 +56,50 @@ public class Setting {
     }
 
     /**
-     * Return game world name
-     * @return String
-     * @deprecated Los mundos ahora tienen nombres fijos, este método ya no es necesario.
-     */
-    @Deprecated
-    public static String getGameWorldName() {
-        return config.getString(settingPath + "game-world", "");
-    }
-
-    /**
-     * Get current reset ID
-     */
-    public static int getResetId() {
-        return config.getInt(settingPath + "reset-id", 0);
-    }
-
-    /**
-     * Set current reset ID
-     */
-    public static void setResetId(int id) {
-        config.set(settingPath + "reset-id", id);
-    }
-
-    /**
      * Return lobby world name
+     *
      * @return String
      */
     public static String getLobbyWorldName() {
-        return config.getString(settingPath + "lobby-world");
+        String name = config().getString(SETTING_PATH + "lobby-world", DEFAULT_LOBBY_WORLD);
+        return name == null || name.trim().isEmpty() ? DEFAULT_LOBBY_WORLD : name;
     }
 
     /**
      * Set lobby world name
-     * @param worldName
+     *
+     * @param worldName the new lobby world name
      */
     public static void setLobbyWorldName(String worldName) {
-        config.set(settingPath + "lobby-world", worldName);
+        config().set(SETTING_PATH + "lobby-world", worldName);
     }
 
     /**
      * Is MOTD enabled
      */
     public static boolean isMotdEnabled() {
-        return config.getBoolean(settingPath + "motd");
+        return config().getBoolean(SETTING_PATH + "motd");
     }
 
     /**
      * Is offline player inventory clear enabled
      */
     public static boolean isOfflinePlayerInventoryClearEnabled() {
-        return config.getBoolean(settingPath + "offline-player-inventory-clear");
+        return config().getBoolean(SETTING_PATH + "offline-player-inventory-clear");
     }
 
     /**
-     * Get default lives count for new world
+     * Lives a brand new game starts with. A missing key falls back to the
+     * default instead of 0, which would reset the world on the first death.
      */
     public static int getMaxLives() {
-        return config.getInt(settingPath + "max-lives");
+        return Math.max(0, config().getInt(SETTING_PATH + "max-lives", DEFAULT_MAX_LIVES));
     }
 
     /**
-     * Get default lives count for new world
-     */
-    public static int getLives() {
-        return config.getInt(settingPath + "current-lives");
-    }
-
-    /**
-     * Set current lives count
-     */
-    public static void setLives(int lives) {
-        config.set(settingPath + "current-lives", lives);
-    }
-
-    /**
-     * Set world creation time
-     */
-    public static void setCreateTime(long time) {
-        config.set(settingPath + "create-time", time);
-    }
-
-    /**
-     * Get world creation time
-     */
-    public static long getCreateTime() {
-        return config.getLong(settingPath + "create-time");
-    }
-
-    /**
-     * Get world if you want to remove old worlds
+     * Whether old world folders are deleted instead of backed up on reset
      */
     public static boolean removeOldWorlds() {
-        return config.getBoolean(settingPath + "remove-old-worlds");
+        return config().getBoolean(SETTING_PATH + "remove-old-worlds");
     }
 }

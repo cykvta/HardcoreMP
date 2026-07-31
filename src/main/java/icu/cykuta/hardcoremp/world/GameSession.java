@@ -1,5 +1,6 @@
 package icu.cykuta.hardcoremp.world;
 
+import icu.cykuta.hardcoremp.config.GameData;
 import icu.cykuta.hardcoremp.config.Setting;
 import org.bukkit.World;
 
@@ -10,18 +11,33 @@ public class GameSession {
     private long createdTime;
     private int lives;
 
-    public GameSession(long createdTime) {
-        this.createdTime = createdTime == 0 ? System.currentTimeMillis() : createdTime;
-        this.setSessionLives();
+    private GameSession(long createdTime, int lives) {
+        this.createdTime = createdTime;
+        this.lives = lives;
     }
 
-    public GameSession() {
-        this.setSessionLives();
+    /**
+     * Brand new session (freshly generated world): lives go back to the maximum.
+     */
+    public static GameSession createNew(long createdTime) {
+        int maxLives = Setting.getMaxLives();
+        GameSession session = new GameSession(
+                createdTime == 0 ? System.currentTimeMillis() : createdTime,
+                maxLives
+        );
+        GameData.setLives(maxLives);
+        GameData.save();
+        return session;
     }
 
-    private void setSessionLives() {
-        Setting.setLives(Setting.getMaxLives());
-        this.lives = Setting.getMaxLives();
+    /**
+     * Session restored from disk (server restart): keeps the stored lives and
+     * creation time. It never resets them, since doing so would hand the players
+     * free lives and hide how close the game is to a reset.
+     */
+    public static GameSession restore(long createdTime) {
+        int lives = Math.max(0, Math.min(GameData.getLives(), Setting.getMaxLives()));
+        return new GameSession(createdTime, lives);
     }
 
     public World getOverworld() {
@@ -61,9 +77,9 @@ public class GameSession {
     }
 
     public void removeLife() {
-        --this.lives;
-        Setting.setLives(this.lives);
-        Setting.saveConfig();
+        this.lives = Math.max(0, this.lives - 1);
+        GameData.setLives(this.lives);
+        GameData.save();
     }
 
     public int getLives() {

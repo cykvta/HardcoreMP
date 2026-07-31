@@ -1,11 +1,13 @@
 package icu.cykuta.hardcoremp;
 
 import icu.cykuta.hardcoremp.command.HcmpCommand;
+import icu.cykuta.hardcoremp.config.GameData;
+import icu.cykuta.hardcoremp.config.LangManager;
 import icu.cykuta.hardcoremp.config.Setting;
+import icu.cykuta.hardcoremp.config.YamlFile;
 import icu.cykuta.hardcoremp.listener.Motd;
 import icu.cykuta.hardcoremp.listener.PlayerDeath;
 import icu.cykuta.hardcoremp.listener.PlayerJoin;
-import icu.cykuta.hardcoremp.config.ConfigLoader;
 import icu.cykuta.hardcoremp.listener.PlayerPortal;
 import icu.cykuta.hardcoremp.world.WorldManager;
 import org.bstats.bukkit.Metrics;
@@ -17,12 +19,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class HardcoreMP extends JavaPlugin {
     private static HardcoreMP plugin;
     private static WorldManager worldManager;
-    private static ConfigLoader configLoader;
+    private static YamlFile configFile;
+    private static YamlFile langFile;
+    private static YamlFile dataFile;
 
     @Override
     public void onEnable() {
         plugin = this;
-        configLoader = new ConfigLoader();
+        configFile = new YamlFile("config.yml");
+        langFile = new YamlFile("lang.yml");
+        dataFile = new YamlFile("data.yml");
 
         try {
             new Metrics(this, 25093);
@@ -31,10 +37,21 @@ public final class HardcoreMP extends JavaPlugin {
         }
 
         try {
-            configLoader.register();
+            configFile.register();
+            langFile.register();
+            dataFile.register();
         } catch (Exception e) {
-            disablePlugin("Failed to load config file.");
+            disablePlugin("Failed to load the plugin files: " + e.getMessage());
             return;
+        }
+
+        Setting.bind(configFile);
+        LangManager.bind(langFile);
+        GameData.bind(dataFile);
+
+        // Older versions kept the game state inside config.yml
+        if (GameData.migrateFromConfig(configFile)) {
+            getLogger().info("Game state migrated from config.yml to data.yml.");
         }
 
         worldManager = new WorldManager(Setting.getLobbyWorldName());
@@ -42,7 +59,7 @@ public final class HardcoreMP extends JavaPlugin {
         try {
             worldManager.loadWorlds();
         } catch (IllegalArgumentException e) {
-            disablePlugin("Failed to load worlds.");
+            disablePlugin("Failed to load worlds: " + e.getMessage());
             return;
         }
 
@@ -52,6 +69,15 @@ public final class HardcoreMP extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Persist lives and reset id before the server saves the players, so a
+        // restart is not mistaken for a missed world reset.
+        if (worldManager != null) {
+            try {
+                worldManager.saveState();
+            } catch (Exception e) {
+                getLogger().warning("Failed to save plugin state: " + e.getMessage());
+            }
+        }
         Bukkit.getConsoleSender().sendMessage("The plugin has been disabled.");
     }
 
@@ -75,8 +101,19 @@ public final class HardcoreMP extends JavaPlugin {
         return worldManager;
     }
 
-    public static ConfigLoader getConfigFile() {
-        return configLoader;
+    /** Admin options (config.yml). */
+    public static YamlFile getConfigFile() {
+        return configFile;
+    }
+
+    /** Messages (lang.yml). */
+    public static YamlFile getLangFile() {
+        return langFile;
+    }
+
+    /** Runtime game state (data.yml). */
+    public static YamlFile getDataFile() {
+        return dataFile;
     }
 
     public static void disablePlugin(String reason) {
@@ -84,5 +121,3 @@ public final class HardcoreMP extends JavaPlugin {
         Bukkit.getPluginManager().disablePlugin(plugin);
     }
 }
-
-
